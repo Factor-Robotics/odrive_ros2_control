@@ -1,0 +1,81 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 100 # Hz
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    joint0_position_controller:
+      type: position_controllers/JointGroupPositionController
+
+    joint0_velocity_controller:
+      type: velocity_controllers/JointGroupVelocityController
+
+    joint0_effort_controller:
+      type: effort_controllers/JointGroupEffortController
+    
+    joint1_position_controller:
+      type: position_controllers/JointGroupPositionController
+
+    joint1_velocity_controller:
+      type: velocity_controllers/JointGroupVelocityController
+
+    joint1_effort_controller:
+      type: effort_controllers/JointGroupEffortController
+    
+    group_position_controller:
+      type: position_controllers/JointGroupPositionController
+
+    group_velocity_controller:
+      type: velocity_controllers/JointGroupVelocityController
+
+    group_effort_controller:
+      type: effort_controllers/JointGroupEffortController
+
+joint0_position_controller:
+  ros__parameters:
+    joints:
+      - joint0
+
+joint0_velocity_controller:
+  ros__parameters:
+    joints:
+      - joint0
+
+joint0_effort_controller:
+  ros__parameters:
+    joints:
+      - joint0
+
+joint1_position_controller:
+  ros__parameters:
+    joints:
+      - joint1
+
+joint1_velocity_controller:
+  ros__parameters:
+    joints:
+      - joint1
+
+joint1_effort_controller:
+  ros__parameters:
+    joints:
+      - joint1
+
+group_position_controller:
+  ros__parameters:
+    joints:
+      - joint0
+      - joint1
+
+group_velocity_controller:
+  ros__parameters:
+    joints:
+      - joint0
+      - joint1
+
+group_effort_controller:
+  ros__parameters:
+    joints:
+      - joint0
+      - joint1

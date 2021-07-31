@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="odrive_ros2_control" params="name enable_joint0:=^|true enable_joint1:=^|true">
+
+    <ros2_control name="${name}" type="system">
+      <hardware>
+        <plugin>odrive_hardware_interface/ODriveHardwareInterface</plugin>
+      </hardware>
+
+      <xacro:if value="${enable_joint0}">
+        <joint name="joint0">
+          <command_interface  name="position" />
+          <command_interface  name="velocity" />
+          <command_interface  name="effort" />
+          <state_interface    name="position" />
+          <state_interface    name="velocity" />
+          <state_interface    name="effort" />
+          <param name="axis">0</param>
+          <param name="KV">170</param>
+        </joint>
+      </xacro:if>
+
+      <xacro:if value="${enable_joint1}">
+        <joint name="joint1">
+          <command_interface  name="position" />
+          <command_interface  name="velocity" />
+          <command_interface  name="effort" />
+          <state_interface    name="position" />
+          <state_interface    name="velocity" />
+          <state_interface    name="effort" />
+          <param name="axis">1</param>
+          <param name="KV">170</param>
+        </joint>
+      </xacro:if>
+    </ros2_control>
+
+  </xacro:macro>
+
+</robot>
