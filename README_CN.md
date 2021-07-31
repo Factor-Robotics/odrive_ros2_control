@@ -7,7 +7,7 @@ ODrive 的 ros2_control 驱动
 * ODrive 固件 v0.5.1（很快将支持后续版本）
 ## Done
 - [x] 支持 USB 上的原生协议
-- [x] 支持位置、速度、力矩控制
+- [x] 支持位置、速度、力矩命令
 - [x] 支持位置、速度、力矩反馈
 - [x] 支持控制模式切换
 - [x] 单位换算遵循 [REP-103](<https://www.ros.org/reps/rep-0103.html>)
