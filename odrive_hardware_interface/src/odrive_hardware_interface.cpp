@@ -30,7 +30,7 @@ return_type ODriveHardwareInterface::configure(const hardware_interface::Hardwar
   hw_commands_positions_.resize(info_.joints.size(), 0);
   hw_commands_velocities_.resize(info_.joints.size(), 0);
   hw_commands_efforts_.resize(info_.joints.size(), 0);
-  control_level_.resize(info_.joints.size(), integration_level_t::VELOCITY);
+  control_level_.resize(info_.joints.size(), integration_level_t::UNDEFINED);
 
   for (const hardware_interface::ComponentInfo& joint : info_.joints)
   {
@@ -118,13 +118,91 @@ std::vector<hardware_interface::CommandInterface> ODriveHardwareInterface::expor
   return command_interfaces;
 }
 
-return_type ODriveHardwareInterface::start()
+return_type ODriveHardwareInterface::prepare_command_mode_switch(const std::vector<std::string>& start_interfaces,
+                                                                 const std::vector<std::string>& stop_interfaces)
 {
-  axis_requested_state_ = AXIS_STATE_CLOSED_LOOP_CONTROL;
+  std::vector<integration_level_t> new_modes = control_level_;
+  for (std::string key : stop_interfaces)
+  {
+    for (size_t i = 0; i < info_.joints.size(); i++)
+    {
+      if (key.find(info_.joints[i].name) != std::string::npos)
+      {
+        new_modes[i] = integration_level_t::UNDEFINED;
+      }
+    }
+  }
+
+  for (std::string key : start_interfaces)
+  {
+    for (size_t i = 0; i < info_.joints.size(); i++)
+    {
+      if (key == info_.joints[i].name + "/" + hardware_interface::HW_IF_POSITION)
+      {
+        new_modes[i] = integration_level_t::POSITION;
+      }
+      if (key == info_.joints[i].name + "/" + hardware_interface::HW_IF_VELOCITY)
+      {
+        new_modes[i] = integration_level_t::VELOCITY;
+      }
+      if (key == info_.joints[i].name + "/" + hardware_interface::HW_IF_EFFORT)
+      {
+        new_modes[i] = integration_level_t::EFFORT;
+      }
+    }
+  }
+
   for (size_t i = 0; i < info_.joints.size(); i++)
   {
-    int result = odrive->write(odrive->odrive_handle_, AXIS__REQUESTED_STATE + per_axis_offset * axis_[i],
-                               axis_requested_state_);
+    if (control_level_[i] != new_modes[i])
+    {
+      int result;
+      int32_t requested_state, control_mode;
+      if (new_modes[i] == integration_level_t::UNDEFINED)
+      {
+        requested_state = AXIS_STATE_IDLE;
+        result =
+            odrive->write(odrive->odrive_handle_, AXIS__REQUESTED_STATE + per_axis_offset * axis_[i], requested_state);
+        if (result != 0)
+        {
+          RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"), libusb_error_name(result));
+          return return_type::ERROR;
+        }
+      }
+      else
+      {
+        control_mode = (int32_t)new_modes[i];
+        result = odrive->write(odrive->odrive_handle_,
+                               AXIS__CONTROLLER__CONFIG__CONTROL_MODE + per_axis_offset * axis_[i], control_mode);
+        if (result != 0)
+        {
+          RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"), libusb_error_name(result));
+          return return_type::ERROR;
+        }
+
+        requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL;
+        result =
+            odrive->write(odrive->odrive_handle_, AXIS__REQUESTED_STATE + per_axis_offset * axis_[i], requested_state);
+        if (result != 0)
+        {
+          RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"), libusb_error_name(result));
+          return return_type::ERROR;
+        }
+      }
+    }
+    control_level_[i] = new_modes[i];
+  }
+
+  return return_type::OK;
+}
+
+return_type ODriveHardwareInterface::start()
+{
+  int32_t requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL;
+  for (size_t i = 0; i < info_.joints.size(); i++)
+  {
+    int result =
+        odrive->write(odrive->odrive_handle_, AXIS__REQUESTED_STATE + per_axis_offset * axis_[i], requested_state);
     if (result != 0)
     {
       RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"), libusb_error_name(result));
@@ -138,11 +216,11 @@ return_type ODriveHardwareInterface::start()
 
 return_type ODriveHardwareInterface::stop()
 {
-  axis_requested_state_ = AXIS_STATE_IDLE;
+  int32_t requested_state = AXIS_STATE_IDLE;
   for (size_t i = 0; i < info_.joints.size(); i++)
   {
-    int result = odrive->write(odrive->odrive_handle_, AXIS__REQUESTED_STATE + per_axis_offset * axis_[i],
-                               axis_requested_state_);
+    int result =
+        odrive->write(odrive->odrive_handle_, AXIS__REQUESTED_STATE + per_axis_offset * axis_[i], requested_state);
     if (result != 0)
     {
       RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"), libusb_error_name(result));
@@ -211,8 +289,6 @@ return_type ODriveHardwareInterface::write()
     switch (control_level_[i])
     {
       case integration_level_t::UNDEFINED:
-        RCLCPP_INFO(rclcpp::get_logger("ODriveHardwareInterface"), "Nothing is using the hardware interface!");
-        return return_type::OK;
         break;
 
       case integration_level_t::EFFORT:

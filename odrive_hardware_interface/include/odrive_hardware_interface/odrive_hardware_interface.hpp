@@ -46,6 +46,10 @@ public:
   std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
 
   ODRIVE_HARDWARE_INTERFACE_PUBLIC
+  return_type prepare_command_mode_switch(const std::vector<std::string>& start_interfaces,
+                                          const std::vector<std::string>& stop_interfaces) override;
+
+  ODRIVE_HARDWARE_INTERFACE_PUBLIC
   return_type start() override;
 
   ODRIVE_HARDWARE_INTERFACE_PUBLIC
@@ -60,8 +64,6 @@ public:
 private:
   ODriveUSB* odrive;
 
-  int32_t axis_requested_state_;
-
   std::vector<int> axis_;
   std::vector<int> KV_;
 
@@ -72,7 +74,7 @@ private:
   std::vector<double> hw_velocities_;
   std::vector<double> hw_efforts_;
 
-  enum class integration_level_t : std::uint8_t
+  enum class integration_level_t : int32_t
   {
     UNDEFINED = 0,
     EFFORT = 1,

@@ -9,11 +9,11 @@ ODrive driver for ros2_control
 - [x] Support native protocol on USB
 - [x] Support position, speed, torque commands
 - [x] Support position, speed, torque feedbacks
+- [x] Support control mode switch
 - [x] Unit conversion adheres to [REP-103](<https://www.ros.org/reps/rep-0103.html>)
 - [x] Support using any or both of axes on a single ODrive
 - [x] Allow two axes running in different control modes
 ## Todo
-- [ ] Support control mode switch
 - [ ] Support using multiple ODrives
 - [ ] Support serial port and CAN
 - [ ] Support sensorless mode
