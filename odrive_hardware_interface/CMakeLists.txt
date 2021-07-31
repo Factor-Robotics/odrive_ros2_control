@@ -67,8 +67,10 @@ ament_target_dependencies(
 
 pluginlib_export_plugin_description_file(hardware_interface odrive_hardware_interface.xml)
 
-install(TARGETS ${PROJECT_NAME} odrive_usb
-  DESTINATION lib)
+install(
+  TARGETS ${PROJECT_NAME} odrive_usb
+  DESTINATION lib
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
