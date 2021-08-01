@@ -74,23 +74,13 @@ return_type ODriveHardwareInterface::configure(const hardware_interface::Hardwar
   }
 
   odrive = new ODriveUSB();
-  int result = odrive->init();
-  if (result != 0)
-  {
-    RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"), libusb_error_name(result));
-    return return_type::ERROR;
-  }
+  CHECK(odrive->init());
 
   for (size_t i = 0; i < info_.joints.size(); i++)
   {
     float torque_constant;
-    int result = odrive->read(odrive->odrive_handle_, AXIS__MOTOR__CONFIG__TORQUE_CONSTANT + per_axis_offset * axis_[i],
-                              torque_constant);
-    if (result != 0)
-    {
-      RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"), libusb_error_name(result));
-      return return_type::ERROR;
-    }
+    CHECK(odrive->read(odrive->odrive_handle_, AXIS__MOTOR__CONFIG__TORQUE_CONSTANT + per_axis_offset * axis_[i],
+                       torque_constant));
     torque_constant_.push_back(torque_constant);
   }
 
@@ -168,38 +158,22 @@ return_type ODriveHardwareInterface::prepare_command_mode_switch(const std::vect
   {
     if (control_level_[i] != new_modes[i])
     {
-      int result;
       int32_t requested_state, control_mode;
       if (new_modes[i] == integration_level_t::UNDEFINED)
       {
         requested_state = AXIS_STATE_IDLE;
-        result =
-            odrive->write(odrive->odrive_handle_, AXIS__REQUESTED_STATE + per_axis_offset * axis_[i], requested_state);
-        if (result != 0)
-        {
-          RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"), libusb_error_name(result));
-          return return_type::ERROR;
-        }
+        CHECK(
+            odrive->write(odrive->odrive_handle_, AXIS__REQUESTED_STATE + per_axis_offset * axis_[i], requested_state));
       }
       else
       {
         control_mode = (int32_t)new_modes[i];
-        result = odrive->write(odrive->odrive_handle_,
-                               AXIS__CONTROLLER__CONFIG__CONTROL_MODE + per_axis_offset * axis_[i], control_mode);
-        if (result != 0)
-        {
-          RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"), libusb_error_name(result));
-          return return_type::ERROR;
-        }
+        CHECK(odrive->write(odrive->odrive_handle_, AXIS__CONTROLLER__CONFIG__CONTROL_MODE + per_axis_offset * axis_[i],
+                            control_mode));
 
         requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL;
-        result =
-            odrive->write(odrive->odrive_handle_, AXIS__REQUESTED_STATE + per_axis_offset * axis_[i], requested_state);
-        if (result != 0)
-        {
-          RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"), libusb_error_name(result));
-          return return_type::ERROR;
-        }
+        CHECK(
+            odrive->write(odrive->odrive_handle_, AXIS__REQUESTED_STATE + per_axis_offset * axis_[i], requested_state));
       }
     }
     control_level_[i] = new_modes[i];
@@ -213,13 +187,7 @@ return_type ODriveHardwareInterface::start()
   int32_t requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL;
   for (size_t i = 0; i < info_.joints.size(); i++)
   {
-    int result =
-        odrive->write(odrive->odrive_handle_, AXIS__REQUESTED_STATE + per_axis_offset * axis_[i], requested_state);
-    if (result != 0)
-    {
-      RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"), libusb_error_name(result));
-      return return_type::ERROR;
-    }
+    CHECK(odrive->write(odrive->odrive_handle_, AXIS__REQUESTED_STATE + per_axis_offset * axis_[i], requested_state));
   }
 
   status_ = hardware_interface::status::STARTED;
@@ -231,13 +199,7 @@ return_type ODriveHardwareInterface::stop()
   int32_t requested_state = AXIS_STATE_IDLE;
   for (size_t i = 0; i < info_.joints.size(); i++)
   {
-    int result =
-        odrive->write(odrive->odrive_handle_, AXIS__REQUESTED_STATE + per_axis_offset * axis_[i], requested_state);
-    if (result != 0)
-    {
-      RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"), libusb_error_name(result));
-      return return_type::ERROR;
-    }
+    CHECK(odrive->write(odrive->odrive_handle_, AXIS__REQUESTED_STATE + per_axis_offset * axis_[i], requested_state));
   }
 
   status_ = hardware_interface::status::STOPPED;
@@ -248,44 +210,17 @@ return_type ODriveHardwareInterface::read()
 {
   for (size_t i = 0; i < info_.joints.size(); i++)
   {
-    int result;
     float Iq_measured, vel_estimate, pos_estimate;
 
-    result = odrive->read(odrive->odrive_handle_,
-                          AXIS__MOTOR__CURRENT_CONTROL__IQ_MEASURED + per_axis_offset * axis_[i], Iq_measured);
-    if (result != 0)
-    {
-      RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"), libusb_error_name(result));
-      return return_type::ERROR;
-    }
-    else
-    {
-      hw_efforts_[i] = Iq_measured * torque_constant_[i];
-    }
+    CHECK(odrive->read(odrive->odrive_handle_, AXIS__MOTOR__CURRENT_CONTROL__IQ_MEASURED + per_axis_offset * axis_[i],
+                       Iq_measured));
+    hw_efforts_[i] = Iq_measured * torque_constant_[i];
 
-    result =
-        odrive->read(odrive->odrive_handle_, AXIS__ENCODER__VEL_ESTIMATE + per_axis_offset * axis_[i], vel_estimate);
-    if (result != 0)
-    {
-      RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"), libusb_error_name(result));
-      return return_type::ERROR;
-    }
-    else
-    {
-      hw_velocities_[i] = vel_estimate * 2 * M_PI;
-    }
+    CHECK(odrive->read(odrive->odrive_handle_, AXIS__ENCODER__VEL_ESTIMATE + per_axis_offset * axis_[i], vel_estimate));
+    hw_velocities_[i] = vel_estimate * 2 * M_PI;
 
-    result =
-        odrive->read(odrive->odrive_handle_, AXIS__ENCODER__POS_ESTIMATE + per_axis_offset * axis_[i], pos_estimate);
-    if (result != 0)
-    {
-      RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"), libusb_error_name(result));
-      return return_type::ERROR;
-    }
-    else
-    {
-      hw_positions_[i] = pos_estimate * 2 * M_PI;
-    }
+    CHECK(odrive->read(odrive->odrive_handle_, AXIS__ENCODER__POS_ESTIMATE + per_axis_offset * axis_[i], pos_estimate));
+    hw_positions_[i] = pos_estimate * 2 * M_PI;
   }
 
   return return_type::OK;
@@ -295,7 +230,6 @@ return_type ODriveHardwareInterface::write()
 {
   for (size_t i = 0; i < info_.joints.size(); i++)
   {
-    int result;
     float Iq_setpoint, input_vel, input_pos;
 
     switch (control_level_[i])
@@ -305,35 +239,20 @@ return_type ODriveHardwareInterface::write()
 
       case integration_level_t::EFFORT:
         Iq_setpoint = hw_commands_efforts_[i] / torque_constant_[i];
-        result = odrive->write(odrive->odrive_handle_,
-                               AXIS__MOTOR__CURRENT_CONTROL__IQ_SETPOINT + per_axis_offset * axis_[i], Iq_setpoint);
-        if (result != 0)
-        {
-          RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"), libusb_error_name(result));
-          return return_type::ERROR;
-        }
+        CHECK(odrive->write(odrive->odrive_handle_,
+                            AXIS__MOTOR__CURRENT_CONTROL__IQ_SETPOINT + per_axis_offset * axis_[i], Iq_setpoint));
         break;
 
       case integration_level_t::VELOCITY:
         input_vel = hw_commands_velocities_[i] / 2 / M_PI;
-        result =
-            odrive->write(odrive->odrive_handle_, AXIS__CONTROLLER__INPUT_VEL + per_axis_offset * axis_[i], input_vel);
-        if (result != 0)
-        {
-          RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"), libusb_error_name(result));
-          return return_type::ERROR;
-        }
+        CHECK(
+            odrive->write(odrive->odrive_handle_, AXIS__CONTROLLER__INPUT_VEL + per_axis_offset * axis_[i], input_vel));
         break;
 
       case integration_level_t::POSITION:
         input_pos = hw_commands_positions_[i] / 2 / M_PI;
-        result =
-            odrive->write(odrive->odrive_handle_, AXIS__CONTROLLER__INPUT_POS + per_axis_offset * axis_[i], input_pos);
-        if (result != 0)
-        {
-          RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"), libusb_error_name(result));
-          return return_type::ERROR;
-        }
+        CHECK(
+            odrive->write(odrive->odrive_handle_, AXIS__CONTROLLER__INPUT_POS + per_axis_offset * axis_[i], input_pos));
         break;
     }
   }

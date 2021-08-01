@@ -39,10 +39,10 @@ ODriveUSB::~ODriveUSB()
 
 int ODriveUSB::init()
 {
-  int result = libusb_init(&libusb_context_);
-  if (result != LIBUSB_SUCCESS)
+  int ret = libusb_init(&libusb_context_);
+  if (ret != LIBUSB_SUCCESS)
   {
-    return result;
+    return ret;
   }
 
   libusb_device** device_list;
@@ -93,8 +93,8 @@ int ODriveUSB::init()
   }
 
   libusb_free_device_list(device_list, 1);
-  result = (odrive_handle_) ? LIBUSB_SUCCESS : LIBUSB_ERROR_NO_DEVICE;
-  return result;
+  ret = (odrive_handle_) ? LIBUSB_SUCCESS : LIBUSB_ERROR_NO_DEVICE;
+  return ret;
 }
 
 template <typename T>
@@ -103,10 +103,10 @@ int ODriveUSB::read(libusb_device_handle* odrive_handle, short endpoint_id, T& v
   bytes request_payload;
   bytes response_payload;
 
-  int result = endpointOperation(odrive_handle, endpoint_id, sizeof(value), request_payload, response_payload, 1);
-  if (result != LIBUSB_SUCCESS)
+  int ret = endpointOperation(odrive_handle, endpoint_id, sizeof(value), request_payload, response_payload, 1);
+  if (ret != LIBUSB_SUCCESS)
   {
-    return result;
+    return ret;
   }
 
   std::memcpy(&value, &response_payload[0], sizeof(value));
@@ -145,20 +145,20 @@ int ODriveUSB::endpointOperation(libusb_device_handle* odrive_handle, short endp
 
   bytes request_packet = encodePacket(sequence_number, endpoint_id, response_size, request_payload);
 
-  int result = libusb_bulk_transfer(odrive_handle, ODRIVE_OUT_ENDPOINT, request_packet.data(), request_packet.size(),
-                                    &transferred, 0);
-  if (result != LIBUSB_SUCCESS)
+  int ret = libusb_bulk_transfer(odrive_handle, ODRIVE_OUT_ENDPOINT, request_packet.data(), request_packet.size(),
+                                 &transferred, 0);
+  if (ret != LIBUSB_SUCCESS)
   {
-    return result;
+    return ret;
   }
 
   if (MSB)
   {
-    result =
+    ret =
         libusb_bulk_transfer(odrive_handle, ODRIVE_IN_ENDPOINT, response_data, ODRIVE_MAX_PACKET_SIZE, &transferred, 0);
-    if (result != LIBUSB_SUCCESS)
+    if (ret != LIBUSB_SUCCESS)
     {
-      return result;
+      return ret;
     }
 
     for (int i = 0; i < transferred; i++)
