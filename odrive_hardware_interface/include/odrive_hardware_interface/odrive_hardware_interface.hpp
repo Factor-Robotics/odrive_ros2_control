@@ -65,7 +65,7 @@ private:
   ODriveUSB* odrive;
 
   std::vector<int> axis_;
-  std::vector<int> KV_;
+  std::vector<float> torque_constant_;
 
   std::vector<double> hw_commands_positions_;
   std::vector<double> hw_commands_velocities_;

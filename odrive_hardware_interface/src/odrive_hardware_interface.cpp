@@ -71,7 +71,6 @@ return_type ODriveHardwareInterface::configure(const hardware_interface::Hardwar
     }
 
     axis_.push_back(std::stoi(joint.parameters.at("axis")));
-    KV_.push_back(std::stoi(joint.parameters.at("KV")));
   }
 
   odrive = new ODriveUSB();
@@ -80,6 +79,19 @@ return_type ODriveHardwareInterface::configure(const hardware_interface::Hardwar
   {
     RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"), libusb_error_name(result));
     return return_type::ERROR;
+  }
+
+  for (size_t i = 0; i < info_.joints.size(); i++)
+  {
+    float torque_constant;
+    int result = odrive->read(odrive->odrive_handle_, AXIS__MOTOR__CONFIG__TORQUE_CONSTANT + per_axis_offset * axis_[i],
+                              torque_constant);
+    if (result != 0)
+    {
+      RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"), libusb_error_name(result));
+      return return_type::ERROR;
+    }
+    torque_constant_.push_back(torque_constant);
   }
 
   status_ = hardware_interface::status::CONFIGURED;
@@ -248,7 +260,7 @@ return_type ODriveHardwareInterface::read()
     }
     else
     {
-      hw_efforts_[i] = Iq_measured * 8.27 / KV_[i];
+      hw_efforts_[i] = Iq_measured * torque_constant_[i];
     }
 
     result =
@@ -292,7 +304,7 @@ return_type ODriveHardwareInterface::write()
         break;
 
       case integration_level_t::EFFORT:
-        Iq_setpoint = hw_commands_efforts_[i] / 8.27 * KV_[i];
+        Iq_setpoint = hw_commands_efforts_[i] / torque_constant_[i];
         result = odrive->write(odrive->odrive_handle_,
                                AXIS__MOTOR__CURRENT_CONTROL__IQ_SETPOINT + per_axis_offset * axis_[i], Iq_setpoint);
         if (result != 0)
