@@ -37,7 +37,7 @@ return_type ODriveHardwareInterface::configure(const hardware_interface::Hardwar
     if (joint.command_interfaces.size() != 3)
     {
       RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"), "Joint '%s' has %d command interfaces. 3 expected.",
-                   joint.name.c_str());
+                   joint.name.c_str(), joint.command_interfaces.size());
       return return_type::ERROR;
     }
 
@@ -55,7 +55,7 @@ return_type ODriveHardwareInterface::configure(const hardware_interface::Hardwar
     if (joint.state_interfaces.size() != 3)
     {
       RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"), "Joint '%s'has %d state interfaces. 3 expected.",
-                   joint.name.c_str());
+                   joint.name.c_str(), joint.state_interfaces.size());
       return return_type::ERROR;
     }
 
