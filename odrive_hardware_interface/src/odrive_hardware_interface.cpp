@@ -27,9 +27,9 @@ return_type ODriveHardwareInterface::configure(const hardware_interface::Hardwar
   hw_positions_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
   hw_velocities_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
   hw_efforts_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
-  hw_commands_positions_.resize(info_.joints.size(), 0);
-  hw_commands_velocities_.resize(info_.joints.size(), 0);
-  hw_commands_efforts_.resize(info_.joints.size(), 0);
+  hw_commands_positions_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+  hw_commands_velocities_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+  hw_commands_efforts_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
   control_level_.resize(info_.joints.size(), integration_level_t::UNDEFINED);
 
   for (const hardware_interface::ComponentInfo& joint : info_.joints)
@@ -159,21 +159,47 @@ return_type ODriveHardwareInterface::prepare_command_mode_switch(const std::vect
     if (control_level_[i] != new_modes[i])
     {
       int32_t requested_state, control_mode;
-      if (new_modes[i] == integration_level_t::UNDEFINED)
-      {
-        requested_state = AXIS_STATE_IDLE;
-        CHECK(
-            odrive->write(odrive->odrive_handle_, AXIS__REQUESTED_STATE + per_axis_offset * axis_[i], requested_state));
-      }
-      else
-      {
-        control_mode = (int32_t)new_modes[i];
-        CHECK(odrive->write(odrive->odrive_handle_, AXIS__CONTROLLER__CONFIG__CONTROL_MODE + per_axis_offset * axis_[i],
-                            control_mode));
 
-        requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL;
-        CHECK(
-            odrive->write(odrive->odrive_handle_, AXIS__REQUESTED_STATE + per_axis_offset * axis_[i], requested_state));
+      switch (new_modes[i])
+      {
+        case integration_level_t::UNDEFINED:
+          requested_state = AXIS_STATE_IDLE;
+          CHECK(odrive->write(odrive->odrive_handle_, AXIS__REQUESTED_STATE + per_axis_offset * axis_[i],
+                              requested_state));
+          break;
+
+        case integration_level_t::EFFORT:
+          hw_commands_efforts_[i] = hw_efforts_[i];
+          control_mode = (int32_t)new_modes[i];
+          CHECK(odrive->write(odrive->odrive_handle_,
+                              AXIS__CONTROLLER__CONFIG__CONTROL_MODE + per_axis_offset * axis_[i], control_mode));
+          requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL;
+          CHECK(odrive->write(odrive->odrive_handle_, AXIS__REQUESTED_STATE + per_axis_offset * axis_[i],
+                              requested_state));
+          break;
+
+        case integration_level_t::VELOCITY:
+          hw_commands_velocities_[i] = hw_velocities_[i];
+          hw_commands_efforts_[i] = 0;
+          control_mode = (int32_t)new_modes[i];
+          CHECK(odrive->write(odrive->odrive_handle_,
+                              AXIS__CONTROLLER__CONFIG__CONTROL_MODE + per_axis_offset * axis_[i], control_mode));
+          requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL;
+          CHECK(odrive->write(odrive->odrive_handle_, AXIS__REQUESTED_STATE + per_axis_offset * axis_[i],
+                              requested_state));
+          break;
+
+        case integration_level_t::POSITION:
+          hw_commands_positions_[i] = hw_positions_[i];
+          hw_commands_velocities_[i] = 0;
+          hw_commands_efforts_[i] = 0;
+          control_mode = (int32_t)new_modes[i];
+          CHECK(odrive->write(odrive->odrive_handle_,
+                              AXIS__CONTROLLER__CONFIG__CONTROL_MODE + per_axis_offset * axis_[i], control_mode));
+          requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL;
+          CHECK(odrive->write(odrive->odrive_handle_, AXIS__REQUESTED_STATE + per_axis_offset * axis_[i],
+                              requested_state));
+          break;
       }
     }
     control_level_[i] = new_modes[i];
@@ -234,25 +260,22 @@ return_type ODriveHardwareInterface::write()
 
     switch (control_level_[i])
     {
-      case integration_level_t::UNDEFINED:
-        break;
-
-      case integration_level_t::EFFORT:
-        Iq_setpoint = hw_commands_efforts_[i] / torque_constant_[i];
-        CHECK(odrive->write(odrive->odrive_handle_,
-                            AXIS__MOTOR__CURRENT_CONTROL__IQ_SETPOINT + per_axis_offset * axis_[i], Iq_setpoint));
-        break;
+      case integration_level_t::POSITION:
+        input_pos = hw_commands_positions_[i] / 2 / M_PI;
+        CHECK(
+            odrive->write(odrive->odrive_handle_, AXIS__CONTROLLER__INPUT_POS + per_axis_offset * axis_[i], input_pos));
 
       case integration_level_t::VELOCITY:
         input_vel = hw_commands_velocities_[i] / 2 / M_PI;
         CHECK(
             odrive->write(odrive->odrive_handle_, AXIS__CONTROLLER__INPUT_VEL + per_axis_offset * axis_[i], input_vel));
-        break;
 
-      case integration_level_t::POSITION:
-        input_pos = hw_commands_positions_[i] / 2 / M_PI;
-        CHECK(
-            odrive->write(odrive->odrive_handle_, AXIS__CONTROLLER__INPUT_POS + per_axis_offset * axis_[i], input_pos));
+      case integration_level_t::EFFORT:
+        Iq_setpoint = hw_commands_efforts_[i] / torque_constant_[i];
+        CHECK(odrive->write(odrive->odrive_handle_,
+                            AXIS__MOTOR__CURRENT_CONTROL__IQ_SETPOINT + per_axis_offset * axis_[i], Iq_setpoint));
+
+      case integration_level_t::UNDEFINED:
         break;
     }
   }
