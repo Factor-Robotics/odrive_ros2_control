@@ -77,6 +77,8 @@ private:
 
   std::vector<int> axis_;
   std::vector<float> torque_constant_;
+  std::vector<bool> enable_watchdog_;
+  std::vector<float> watchdog_timeout_;
 
   std::vector<double> hw_commands_positions_;
   std::vector<double> hw_commands_velocities_;

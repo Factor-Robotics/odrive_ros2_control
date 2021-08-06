@@ -71,6 +71,7 @@ return_type ODriveHardwareInterface::configure(const hardware_interface::Hardwar
     }
 
     axis_.push_back(std::stoi(joint.parameters.at("axis")));
+    enable_watchdog_.push_back(std::stoi(joint.parameters.at("enable_watchdog")));
   }
 
   odrive = new ODriveUSB();
@@ -82,6 +83,14 @@ return_type ODriveHardwareInterface::configure(const hardware_interface::Hardwar
     CHECK(odrive->read(odrive->odrive_handle_, AXIS__MOTOR__CONFIG__TORQUE_CONSTANT + per_axis_offset * axis_[i],
                        torque_constant));
     torque_constant_.push_back(torque_constant);
+
+    if (enable_watchdog_[i])
+    {
+      CHECK(odrive->write(odrive->odrive_handle_, AXIS__CONFIG__WATCHDOG_TIMEOUT + per_axis_offset * axis_[i],
+                          std::stof(info_.joints[i].parameters.at("watchdog_timeout"))));
+    }
+    CHECK(odrive->write(odrive->odrive_handle_, AXIS__CONFIG__ENABLE_WATCHDOG + per_axis_offset * axis_[i],
+                        (bool)enable_watchdog_[i]));
   }
 
   status_ = hardware_interface::status::CONFIGURED;
@@ -213,7 +222,10 @@ return_type ODriveHardwareInterface::start()
   int32_t requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL;
   for (size_t i = 0; i < info_.joints.size(); i++)
   {
-    CHECK(odrive->call(odrive->odrive_handle_, AXIS__WATCHDOG_FEED + per_axis_offset * axis_[i]));
+    if (enable_watchdog_[i])
+    {
+      CHECK(odrive->call(odrive->odrive_handle_, AXIS__WATCHDOG_FEED + per_axis_offset * axis_[i]));
+    }
     CHECK(odrive->call(odrive->odrive_handle_, AXIS__CLEAR_ERRORS + per_axis_offset * axis_[i]));
     CHECK(odrive->write(odrive->odrive_handle_, AXIS__REQUESTED_STATE + per_axis_offset * axis_[i], requested_state));
   }
@@ -278,7 +290,10 @@ return_type ODriveHardwareInterface::write()
                             AXIS__MOTOR__CURRENT_CONTROL__IQ_SETPOINT + per_axis_offset * axis_[i], Iq_setpoint));
 
       case integration_level_t::UNDEFINED:
-        CHECK(odrive->call(odrive->odrive_handle_, AXIS__WATCHDOG_FEED + per_axis_offset * axis_[i]));
+        if (enable_watchdog_[i])
+        {
+          CHECK(odrive->call(odrive->odrive_handle_, AXIS__WATCHDOG_FEED + per_axis_offset * axis_[i]));
+        }
     }
   }
 
