@@ -48,6 +48,7 @@ public:
   int read(libusb_device_handle* odrive_handle, short endpoint_id, T& value);
   template <typename T>
   int write(libusb_device_handle* odrive_handle, short endpoint_id, const T& value);
+  int call(libusb_device_handle* odrive_handle, short endpoint_id);
 
 private:
   libusb_context* libusb_context_;

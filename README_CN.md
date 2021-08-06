@@ -13,6 +13,7 @@ ODrive 的 ros2_control 驱动
 - [x] 单位换算遵循 [REP-103](<https://www.ros.org/reps/rep-0103.html>)
 - [x] 支持使用单个 ODrive 上的任一个或两个轴
 - [x] 允许两轴在不同的控制模式下运行
+- [x] 自动喂狗
 ## Todo
 - [ ] 支持使用多个 ODrive
 - [ ] 支持串口和CAN

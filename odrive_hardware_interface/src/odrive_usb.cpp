@@ -128,6 +128,14 @@ int ODriveUSB::write(libusb_device_handle* odrive_handle, short endpoint_id, con
   return endpointOperation(odrive_handle, endpoint_id, 0, request_payload, response_payload, 1);
 }
 
+int ODriveUSB::call(libusb_device_handle* odrive_handle, short endpoint_id)
+{
+  bytes request_payload;
+  bytes response_payload;
+
+  return endpointOperation(odrive_handle, endpoint_id, 0, request_payload, response_payload, 1);
+}
+
 int ODriveUSB::endpointOperation(libusb_device_handle* odrive_handle, short endpoint_id, short response_size,
                                  bytes request_payload, bytes& response_payload, bool MSB)
 {

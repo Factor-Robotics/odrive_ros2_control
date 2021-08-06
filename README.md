@@ -13,6 +13,7 @@ ODrive driver for ros2_control
 - [x] Unit conversion adheres to [REP-103](<https://www.ros.org/reps/rep-0103.html>)
 - [x] Support using any or both of axes on a single ODrive
 - [x] Allow two axes running in different control modes
+- [x] Auto watchdog feeding
 ## Todo
 - [ ] Support using multiple ODrives
 - [ ] Support serial port and CAN

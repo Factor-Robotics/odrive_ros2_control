@@ -213,6 +213,8 @@ return_type ODriveHardwareInterface::start()
   int32_t requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL;
   for (size_t i = 0; i < info_.joints.size(); i++)
   {
+    CHECK(odrive->call(odrive->odrive_handle_, AXIS__WATCHDOG_FEED + per_axis_offset * axis_[i]));
+    CHECK(odrive->call(odrive->odrive_handle_, AXIS__CLEAR_ERRORS + per_axis_offset * axis_[i]));
     CHECK(odrive->write(odrive->odrive_handle_, AXIS__REQUESTED_STATE + per_axis_offset * axis_[i], requested_state));
   }
 
@@ -276,7 +278,7 @@ return_type ODriveHardwareInterface::write()
                             AXIS__MOTOR__CURRENT_CONTROL__IQ_SETPOINT + per_axis_offset * axis_[i], Iq_setpoint));
 
       case integration_level_t::UNDEFINED:
-        break;
+        CHECK(odrive->call(odrive->odrive_handle_, AXIS__WATCHDOG_FEED + per_axis_offset * axis_[i]));
     }
   }
 
