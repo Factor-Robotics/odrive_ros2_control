@@ -30,7 +30,12 @@ return_type ODriveHardwareInterface::configure(const hardware_interface::Hardwar
   hw_commands_positions_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
   hw_commands_velocities_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
   hw_commands_efforts_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
-  control_level_.resize(info_.joints.size(), integration_level_t::UNDEFINED);
+  hw_fet_temperatures_.resize(info_.sensors.size(), std::numeric_limits<double>::quiet_NaN());
+  hw_motor_temperatures_.resize(info_.sensors.size(), std::numeric_limits<double>::quiet_NaN());
+  hw_axis_errors_.resize(info_.sensors.size(), std::numeric_limits<double>::quiet_NaN());
+  hw_motor_errors_.resize(info_.sensors.size(), std::numeric_limits<double>::quiet_NaN());
+  hw_encoder_errors_.resize(info_.sensors.size(), std::numeric_limits<double>::quiet_NaN());
+  hw_controller_errors_.resize(info_.sensors.size(), std::numeric_limits<double>::quiet_NaN());
 
   for (const hardware_interface::ComponentInfo& joint : info_.joints)
   {
@@ -93,6 +98,7 @@ return_type ODriveHardwareInterface::configure(const hardware_interface::Hardwar
                         (bool)enable_watchdog_[i]));
   }
 
+  control_level_.resize(info_.joints.size(), integration_level_t::UNDEFINED);
   status_ = hardware_interface::status::CONFIGURED;
   return return_type::OK;
 }
@@ -102,12 +108,24 @@ std::vector<hardware_interface::StateInterface> ODriveHardwareInterface::export_
   std::vector<hardware_interface::StateInterface> state_interfaces;
   for (size_t i = 0; i < info_.joints.size(); i++)
   {
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_positions_[i]));
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &hw_velocities_[i]));
     state_interfaces.emplace_back(
         hardware_interface::StateInterface(info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_efforts_[i]));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &hw_velocities_[i]));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_positions_[i]));
+    state_interfaces.emplace_back(
+        hardware_interface::StateInterface(info_.sensors[i].name, "fet_temperature", &hw_fet_temperatures_[i]));
+    state_interfaces.emplace_back(
+        hardware_interface::StateInterface(info_.sensors[i].name, "motor_temperature", &hw_motor_temperatures_[i]));
+    state_interfaces.emplace_back(
+        hardware_interface::StateInterface(info_.sensors[i].name, "axis_error", &hw_axis_errors_[i]));
+    state_interfaces.emplace_back(
+        hardware_interface::StateInterface(info_.sensors[i].name, "motor_error", &hw_motor_errors_[i]));
+    state_interfaces.emplace_back(
+        hardware_interface::StateInterface(info_.sensors[i].name, "encoder_error", &hw_encoder_errors_[i]));
+    state_interfaces.emplace_back(
+        hardware_interface::StateInterface(info_.sensors[i].name, "controller_error", &hw_controller_errors_[i]));
   }
 
   return state_interfaces;
@@ -119,11 +137,11 @@ std::vector<hardware_interface::CommandInterface> ODriveHardwareInterface::expor
   for (size_t i = 0; i < info_.joints.size(); i++)
   {
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
-        info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_commands_positions_[i]));
+        info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_commands_efforts_[i]));
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
         info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &hw_commands_velocities_[i]));
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
-        info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_commands_efforts_[i]));
+        info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_commands_positions_[i]));
   }
 
   return command_interfaces;
@@ -250,7 +268,8 @@ return_type ODriveHardwareInterface::read()
 {
   for (size_t i = 0; i < info_.joints.size(); i++)
   {
-    float Iq_measured, vel_estimate, pos_estimate;
+    float Iq_measured, vel_estimate, pos_estimate, fet_temperature, motor_temperature;
+    int32_t axis_error, motor_error, encoder_error, controller_error;
 
     CHECK(odrive->read(odrive->odrive_handle_, AXIS__MOTOR__CURRENT_CONTROL__IQ_MEASURED + per_axis_offset * axis_[i],
                        Iq_measured));
@@ -261,6 +280,26 @@ return_type ODriveHardwareInterface::read()
 
     CHECK(odrive->read(odrive->odrive_handle_, AXIS__ENCODER__POS_ESTIMATE + per_axis_offset * axis_[i], pos_estimate));
     hw_positions_[i] = pos_estimate * 2 * M_PI;
+
+    CHECK(odrive->read(odrive->odrive_handle_, AXIS__FET_THERMISTOR__TEMPERATURE + per_axis_offset * axis_[i],
+                       fet_temperature));
+    hw_fet_temperatures_[i] = fet_temperature;
+
+    CHECK(odrive->read(odrive->odrive_handle_, AXIS__MOTOR_THERMISTOR__TEMPERATURE + per_axis_offset * axis_[i],
+                       motor_temperature));
+    hw_motor_temperatures_[i] = motor_temperature;
+
+    CHECK(odrive->read(odrive->odrive_handle_, AXIS__ERROR + per_axis_offset * axis_[i], axis_error));
+    hw_axis_errors_[i] = axis_error;
+
+    CHECK(odrive->read(odrive->odrive_handle_, AXIS__MOTOR__ERROR + per_axis_offset * axis_[i], motor_error));
+    hw_motor_errors_[i] = motor_error;
+
+    CHECK(odrive->read(odrive->odrive_handle_, AXIS__ENCODER__ERROR + per_axis_offset * axis_[i], encoder_error));
+    hw_encoder_errors_[i] = encoder_error;
+
+    CHECK(odrive->read(odrive->odrive_handle_, AXIS__CONTROLLER__ERROR + per_axis_offset * axis_[i], controller_error));
+    hw_controller_errors_[i] = controller_error;
   }
 
   return return_type::OK;

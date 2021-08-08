@@ -20,6 +20,14 @@
           <param name="enable_watchdog">1</param>
           <param name="watchdog_timeout">0.1</param>
         </joint>
+        <sensor name="axis0">
+          <state_interface    name="fet_temperature" />
+          <state_interface    name="motor_temperature" />
+          <state_interface    name="axis_error" />
+          <state_interface    name="motor_error" />
+          <state_interface    name="encoder_error" />
+          <state_interface    name="controller_error" />
+        </sensor>
       </xacro:if>
 
       <xacro:if value="${enable_joint1}">
@@ -34,6 +42,14 @@
           <param name="enable_watchdog">1</param>
           <param name="watchdog_timeout">0.1</param>
         </joint>
+        <sensor name="axis1">
+          <state_interface    name="fet_temperature" />
+          <state_interface    name="motor_temperature" />
+          <state_interface    name="axis_error" />
+          <state_interface    name="motor_error" />
+          <state_interface    name="encoder_error" />
+          <state_interface    name="controller_error" />
+        </sensor>
       </xacro:if>
     </ros2_control>
 

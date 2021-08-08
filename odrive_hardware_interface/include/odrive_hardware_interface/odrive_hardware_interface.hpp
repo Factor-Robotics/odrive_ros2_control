@@ -86,6 +86,12 @@ private:
   std::vector<double> hw_positions_;
   std::vector<double> hw_velocities_;
   std::vector<double> hw_efforts_;
+  std::vector<double> hw_fet_temperatures_;
+  std::vector<double> hw_motor_temperatures_;
+  std::vector<double> hw_axis_errors_;
+  std::vector<double> hw_motor_errors_;
+  std::vector<double> hw_encoder_errors_;
+  std::vector<double> hw_controller_errors_;
 
   enum class integration_level_t : int32_t
   {
