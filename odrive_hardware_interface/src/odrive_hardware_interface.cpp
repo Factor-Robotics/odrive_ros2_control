@@ -30,12 +30,12 @@ return_type ODriveHardwareInterface::configure(const hardware_interface::Hardwar
   hw_commands_positions_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
   hw_commands_velocities_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
   hw_commands_efforts_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
-  hw_fet_temperatures_.resize(info_.sensors.size(), std::numeric_limits<double>::quiet_NaN());
-  hw_motor_temperatures_.resize(info_.sensors.size(), std::numeric_limits<double>::quiet_NaN());
   hw_axis_errors_.resize(info_.sensors.size(), std::numeric_limits<double>::quiet_NaN());
   hw_motor_errors_.resize(info_.sensors.size(), std::numeric_limits<double>::quiet_NaN());
   hw_encoder_errors_.resize(info_.sensors.size(), std::numeric_limits<double>::quiet_NaN());
   hw_controller_errors_.resize(info_.sensors.size(), std::numeric_limits<double>::quiet_NaN());
+  hw_fet_temperatures_.resize(info_.sensors.size(), std::numeric_limits<double>::quiet_NaN());
+  hw_motor_temperatures_.resize(info_.sensors.size(), std::numeric_limits<double>::quiet_NaN());
 
   for (const hardware_interface::ComponentInfo& joint : info_.joints)
   {
@@ -115,17 +115,17 @@ std::vector<hardware_interface::StateInterface> ODriveHardwareInterface::export_
     state_interfaces.emplace_back(hardware_interface::StateInterface(
         info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_positions_[i]));
     state_interfaces.emplace_back(
-        hardware_interface::StateInterface(info_.sensors[i].name, "fet_temperature", &hw_fet_temperatures_[i]));
-    state_interfaces.emplace_back(
         hardware_interface::StateInterface(info_.sensors[i].name, "motor_temperature", &hw_motor_temperatures_[i]));
     state_interfaces.emplace_back(
-        hardware_interface::StateInterface(info_.sensors[i].name, "axis_error", &hw_axis_errors_[i]));
+        hardware_interface::StateInterface(info_.sensors[i].name, "fet_temperature", &hw_fet_temperatures_[i]));
     state_interfaces.emplace_back(
         hardware_interface::StateInterface(info_.sensors[i].name, "motor_error", &hw_motor_errors_[i]));
     state_interfaces.emplace_back(
         hardware_interface::StateInterface(info_.sensors[i].name, "encoder_error", &hw_encoder_errors_[i]));
     state_interfaces.emplace_back(
         hardware_interface::StateInterface(info_.sensors[i].name, "controller_error", &hw_controller_errors_[i]));
+    state_interfaces.emplace_back(
+        hardware_interface::StateInterface(info_.sensors[i].name, "axis_error", &hw_axis_errors_[i]));
   }
 
   return state_interfaces;
@@ -281,14 +281,6 @@ return_type ODriveHardwareInterface::read()
     CHECK(odrive->read(odrive->odrive_handle_, AXIS__ENCODER__POS_ESTIMATE + per_axis_offset * axis_[i], pos_estimate));
     hw_positions_[i] = pos_estimate * 2 * M_PI;
 
-    CHECK(odrive->read(odrive->odrive_handle_, AXIS__FET_THERMISTOR__TEMPERATURE + per_axis_offset * axis_[i],
-                       fet_temperature));
-    hw_fet_temperatures_[i] = fet_temperature;
-
-    CHECK(odrive->read(odrive->odrive_handle_, AXIS__MOTOR_THERMISTOR__TEMPERATURE + per_axis_offset * axis_[i],
-                       motor_temperature));
-    hw_motor_temperatures_[i] = motor_temperature;
-
     CHECK(odrive->read(odrive->odrive_handle_, AXIS__ERROR + per_axis_offset * axis_[i], axis_error));
     hw_axis_errors_[i] = axis_error;
 
@@ -300,6 +292,14 @@ return_type ODriveHardwareInterface::read()
 
     CHECK(odrive->read(odrive->odrive_handle_, AXIS__CONTROLLER__ERROR + per_axis_offset * axis_[i], controller_error));
     hw_controller_errors_[i] = controller_error;
+
+    CHECK(odrive->read(odrive->odrive_handle_, AXIS__FET_THERMISTOR__TEMPERATURE + per_axis_offset * axis_[i],
+                       fet_temperature));
+    hw_fet_temperatures_[i] = fet_temperature;
+
+    CHECK(odrive->read(odrive->odrive_handle_, AXIS__MOTOR_THERMISTOR__TEMPERATURE + per_axis_offset * axis_[i],
+                       motor_temperature));
+    hw_motor_temperatures_[i] = motor_temperature;
   }
 
   return return_type::OK;
