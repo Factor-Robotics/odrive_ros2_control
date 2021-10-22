@@ -309,7 +309,7 @@ return_type ODriveHardwareInterface::write()
 {
   for (size_t i = 0; i < info_.joints.size(); i++)
   {
-    float Iq_setpoint, input_vel, input_pos;
+    float input_torque, input_vel, input_pos;
 
     switch (control_level_[i])
     {
@@ -324,9 +324,9 @@ return_type ODriveHardwareInterface::write()
             odrive->write(odrive->odrive_handle_, AXIS__CONTROLLER__INPUT_VEL + per_axis_offset * axis_[i], input_vel));
 
       case integration_level_t::EFFORT:
-        Iq_setpoint = hw_commands_efforts_[i] / torque_constant_[i];
-        CHECK(odrive->write(odrive->odrive_handle_,
-                            AXIS__MOTOR__CURRENT_CONTROL__IQ_SETPOINT + per_axis_offset * axis_[i], Iq_setpoint));
+        input_torque = hw_commands_efforts_[i];
+        CHECK(odrive->write(odrive->odrive_handle_, AXIS__CONTROLLER__INPUT_TORQUE + per_axis_offset * axis_[i],
+                            input_torque));
 
       case integration_level_t::UNDEFINED:
         if (enable_watchdog_[i])
