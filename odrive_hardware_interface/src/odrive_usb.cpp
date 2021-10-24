@@ -219,6 +219,7 @@ bytes ODriveUSB::decodePacket(bytes& response_packet)
 template int ODriveUSB::read(libusb_device_handle*, short, bool&);
 template int ODriveUSB::read(libusb_device_handle*, short, float&);
 template int ODriveUSB::read(libusb_device_handle*, short, int32_t&);
+template int ODriveUSB::read(libusb_device_handle*, short, int64_t&);
 template int ODriveUSB::read(libusb_device_handle*, short, uint8_t&);
 template int ODriveUSB::read(libusb_device_handle*, short, uint16_t&);
 template int ODriveUSB::read(libusb_device_handle*, short, uint32_t&);
@@ -227,6 +228,7 @@ template int ODriveUSB::read(libusb_device_handle*, short, uint64_t&);
 template int ODriveUSB::write(libusb_device_handle*, short, const bool&);
 template int ODriveUSB::write(libusb_device_handle*, short, const float&);
 template int ODriveUSB::write(libusb_device_handle*, short, const int32_t&);
+template int ODriveUSB::write(libusb_device_handle*, short, const int64_t&);
 template int ODriveUSB::write(libusb_device_handle*, short, const uint8_t&);
 template int ODriveUSB::write(libusb_device_handle*, short, const uint16_t&);
 template int ODriveUSB::write(libusb_device_handle*, short, const uint32_t&);

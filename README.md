@@ -4,7 +4,7 @@ ENGLISH / [中文](<README_CN.md>)
 ODrive driver for ros2_control
 ## Prerequisites
 * ROS Foxy
-* ODrive Firmware v0.5.1 (subsequent versions will be supported soon)
+* ODrive Firmware v0.5.3
 ## Done
 - [x] Support native protocol on USB
 - [x] Support position, speed, torque commands

@@ -244,7 +244,10 @@ return_type ODriveHardwareInterface::start()
     {
       CHECK(odrive->call(odrive->odrive_handle_, AXIS__WATCHDOG_FEED + per_axis_offset * axis_[i]));
     }
-    CHECK(odrive->call(odrive->odrive_handle_, AXIS__CLEAR_ERRORS + per_axis_offset * axis_[i]));
+  }
+  CHECK(odrive->call(odrive->odrive_handle_, CLEAR_ERRORS));
+  for (size_t i = 0; i < info_.joints.size(); i++)
+  {
     CHECK(odrive->write(odrive->odrive_handle_, AXIS__REQUESTED_STATE + per_axis_offset * axis_[i], requested_state));
   }
 
@@ -269,7 +272,10 @@ return_type ODriveHardwareInterface::read()
   for (size_t i = 0; i < info_.joints.size(); i++)
   {
     float Iq_measured, vel_estimate, pos_estimate, fet_temperature, motor_temperature;
-    int32_t axis_error, motor_error, encoder_error, controller_error;
+    uint8_t controller_error;
+    uint16_t encoder_error;
+    uint32_t axis_error;
+    uint64_t motor_error;
 
     CHECK(odrive->read(odrive->odrive_handle_, AXIS__MOTOR__CURRENT_CONTROL__IQ_MEASURED + per_axis_offset * axis_[i],
                        Iq_measured));
@@ -293,11 +299,11 @@ return_type ODriveHardwareInterface::read()
     CHECK(odrive->read(odrive->odrive_handle_, AXIS__CONTROLLER__ERROR + per_axis_offset * axis_[i], controller_error));
     hw_controller_errors_[i] = controller_error;
 
-    CHECK(odrive->read(odrive->odrive_handle_, AXIS__FET_THERMISTOR__TEMPERATURE + per_axis_offset * axis_[i],
+    CHECK(odrive->read(odrive->odrive_handle_, AXIS__MOTOR__FET_THERMISTOR__TEMPERATURE + per_axis_offset * axis_[i],
                        fet_temperature));
     hw_fet_temperatures_[i] = fet_temperature;
 
-    CHECK(odrive->read(odrive->odrive_handle_, AXIS__MOTOR_THERMISTOR__TEMPERATURE + per_axis_offset * axis_[i],
+    CHECK(odrive->read(odrive->odrive_handle_, AXIS__MOTOR__MOTOR_THERMISTOR__TEMPERATURE + per_axis_offset * axis_[i],
                        motor_temperature));
     hw_motor_temperatures_[i] = motor_temperature;
   }
