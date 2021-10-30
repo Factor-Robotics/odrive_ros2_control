@@ -5,6 +5,8 @@ ODrive driver for ros2_control
 ## Prerequisites
 * ROS Foxy
 * ODrive Firmware v0.5.3
+## Documentation
+- [Wiki](https://github.com/Factor-Robotics/odrive_ros2_control/wiki/Documentation)
 ## Done
 - [x] Support native protocol on USB
 - [x] Support position, speed, torque commands
@@ -17,8 +19,6 @@ ODrive driver for ros2_control
 ## Todo
 - [ ] Support using multiple ODrives
 - [ ] Support serial port and CAN
-- [ ] Support sensorless mode
 - [ ] Support feedforward control inputs
 - [ ] Automatic configuration of ODrives based on URDF and YAML files
 - [ ] Safety improvements
-- [ ] Wiki page
