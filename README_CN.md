@@ -4,7 +4,9 @@
 ODrive 的 ros2_control 驱动
 ## 前置依赖
 * ROS Foxy
-* ODrive 固件 v0.5.1（很快将支持后续版本）
+* ODrive 固件 v0.5.1
+## 文档
+- [Wiki](https://github.com/Factor-Robotics/odrive_ros2_control/wiki/%E6%96%87%E6%A1%A3)
 ## Done
 - [x] 支持 USB 上的原生协议
 - [x] 支持位置、速度、力矩命令
@@ -17,8 +19,6 @@ ODrive 的 ros2_control 驱动
 ## Todo
 - [ ] 支持使用多个 ODrive
 - [ ] 支持串口和CAN
-- [ ] 支持无感模式
 - [ ] 支持前馈控制输入
 - [ ] 根据URDF和YAML文件自动配置ODrive
 - [ ] 安全性改进
-- [ ] Wiki 页面
