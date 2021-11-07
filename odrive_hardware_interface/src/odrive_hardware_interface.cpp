@@ -185,6 +185,7 @@ return_type ODriveHardwareInterface::prepare_command_mode_switch(const std::vect
   {
     if (control_level_[i] != new_modes[i])
     {
+      float input_torque, input_vel, input_pos;
       int32_t requested_state, control_mode;
 
       switch (new_modes[i])
@@ -200,6 +201,9 @@ return_type ODriveHardwareInterface::prepare_command_mode_switch(const std::vect
           control_mode = (int32_t)new_modes[i];
           CHECK(odrive->write(odrive->odrive_handle_,
                               AXIS__CONTROLLER__CONFIG__CONTROL_MODE + per_axis_offset * axis_[i], control_mode));
+          input_torque = hw_commands_efforts_[i];
+          CHECK(odrive->write(odrive->odrive_handle_, AXIS__CONTROLLER__INPUT_TORQUE + per_axis_offset * axis_[i],
+                              input_torque));
           requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL;
           CHECK(odrive->write(odrive->odrive_handle_, AXIS__REQUESTED_STATE + per_axis_offset * axis_[i],
                               requested_state));
@@ -211,6 +215,12 @@ return_type ODriveHardwareInterface::prepare_command_mode_switch(const std::vect
           control_mode = (int32_t)new_modes[i];
           CHECK(odrive->write(odrive->odrive_handle_,
                               AXIS__CONTROLLER__CONFIG__CONTROL_MODE + per_axis_offset * axis_[i], control_mode));
+          input_vel = hw_commands_velocities_[i] / 2 / M_PI;
+          CHECK(odrive->write(odrive->odrive_handle_, AXIS__CONTROLLER__INPUT_VEL + per_axis_offset * axis_[i],
+                              input_vel));
+          input_torque = hw_commands_efforts_[i];
+          CHECK(odrive->write(odrive->odrive_handle_, AXIS__CONTROLLER__INPUT_TORQUE + per_axis_offset * axis_[i],
+                              input_torque));
           requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL;
           CHECK(odrive->write(odrive->odrive_handle_, AXIS__REQUESTED_STATE + per_axis_offset * axis_[i],
                               requested_state));
@@ -223,6 +233,15 @@ return_type ODriveHardwareInterface::prepare_command_mode_switch(const std::vect
           control_mode = (int32_t)new_modes[i];
           CHECK(odrive->write(odrive->odrive_handle_,
                               AXIS__CONTROLLER__CONFIG__CONTROL_MODE + per_axis_offset * axis_[i], control_mode));
+          input_pos = hw_commands_positions_[i] / 2 / M_PI;
+          CHECK(odrive->write(odrive->odrive_handle_, AXIS__CONTROLLER__INPUT_POS + per_axis_offset * axis_[i],
+                              input_pos));
+          input_vel = hw_commands_velocities_[i] / 2 / M_PI;
+          CHECK(odrive->write(odrive->odrive_handle_, AXIS__CONTROLLER__INPUT_VEL + per_axis_offset * axis_[i],
+                              input_vel));
+          input_torque = hw_commands_efforts_[i];
+          CHECK(odrive->write(odrive->odrive_handle_, AXIS__CONTROLLER__INPUT_TORQUE + per_axis_offset * axis_[i],
+                              input_torque));
           requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL;
           CHECK(odrive->write(odrive->odrive_handle_, AXIS__REQUESTED_STATE + per_axis_offset * axis_[i],
                               requested_state));
@@ -237,7 +256,6 @@ return_type ODriveHardwareInterface::prepare_command_mode_switch(const std::vect
 
 return_type ODriveHardwareInterface::start()
 {
-  int32_t requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL;
   for (size_t i = 0; i < info_.joints.size(); i++)
   {
     if (enable_watchdog_[i])
@@ -246,10 +264,6 @@ return_type ODriveHardwareInterface::start()
     }
   }
   CHECK(odrive->call(odrive->odrive_handle_, CLEAR_ERRORS));
-  for (size_t i = 0; i < info_.joints.size(); i++)
-  {
-    CHECK(odrive->write(odrive->odrive_handle_, AXIS__REQUESTED_STATE + per_axis_offset * axis_[i], requested_state));
-  }
 
   status_ = hardware_interface::status::STARTED;
   return return_type::OK;
