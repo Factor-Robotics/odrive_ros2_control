@@ -16,11 +16,8 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 # find dependencies
-find_package(ament_cmake REQUIRED)
-find_package(hardware_interface REQUIRED)
-find_package(pluginlib REQUIRED)
-find_package(rclcpp REQUIRED)
-find_package(PkgConfig REQUIRED)
+find_package(ament_cmake_auto REQUIRED)
+ament_auto_find_build_dependencies()
 pkg_search_module(LIBUSB1 REQUIRED libusb-1.0)
 
 if(LIBUSB1_FOUND)
@@ -29,48 +26,21 @@ else()
   message( FATAL_ERROR "Failed to find libusb-1.0" )
 endif()
 
-add_library(
-  odrive_usb
-  SHARED
+ament_auto_add_library(
+  odrive_usb SHARED
   src/odrive_usb.cpp
-)
-target_include_directories(
-  odrive_usb
-  PRIVATE
-  include
 )
 target_link_libraries(
   odrive_usb
   ${LIBUSB1_LIBRARIES}
 )
 
-add_library(
-  ${PROJECT_NAME}
-  SHARED
+ament_auto_add_library(
+  ${PROJECT_NAME} SHARED
   src/odrive_hardware_interface.cpp
-)
-target_include_directories(
-  ${PROJECT_NAME}
-  PRIVATE
-  include
-)
-target_link_libraries(
-  ${PROJECT_NAME}
-  odrive_usb
-)
-ament_target_dependencies(
-  ${PROJECT_NAME}
-  hardware_interface
-  pluginlib
-  rclcpp
 )
 
 pluginlib_export_plugin_description_file(hardware_interface odrive_hardware_interface.xml)
-
-install(
-  TARGETS ${PROJECT_NAME} odrive_usb
-  DESTINATION lib
-)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -83,4 +53,4 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-ament_package()
+ament_auto_package()
