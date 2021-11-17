@@ -16,6 +16,7 @@
 
 #include <iostream>
 #include <cstring>
+#include <map>
 #include <vector>
 #include <libusb-1.0/libusb.h>
 
@@ -37,12 +38,12 @@ namespace odrive
 class ODriveUSB
 {
 public:
-  libusb_device_handle* odrive_handle_;
+  std::vector<libusb_device_handle*> odrive_handles_;
 
   ODriveUSB();
   ~ODriveUSB();
 
-  int init();
+  int init(const std::vector<uint64_t>& serial_numbers);
 
   template <typename T>
   int read(libusb_device_handle* odrive_handle, short endpoint_id, T& value);
@@ -52,6 +53,8 @@ public:
 
 private:
   libusb_context* libusb_context_;
+
+  std::map<uint64_t, libusb_device_handle*> odrive_map_;
 
   short sequence_number_;
 

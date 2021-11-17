@@ -16,6 +16,7 @@
           <state_interface    name="position" />
           <state_interface    name="velocity" />
           <state_interface    name="effort" />
+          <param name="serial_number">000000000000</param>
           <param name="axis">0</param>
           <param name="enable_watchdog">1</param>
           <param name="watchdog_timeout">0.1</param>
@@ -38,6 +39,7 @@
           <state_interface    name="position" />
           <state_interface    name="velocity" />
           <state_interface    name="effort" />
+          <param name="serial_number">000000000000</param>
           <param name="axis">1</param>
           <param name="enable_watchdog">1</param>
           <param name="watchdog_timeout">0.1</param>

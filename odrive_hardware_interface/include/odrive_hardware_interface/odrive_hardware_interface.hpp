@@ -75,6 +75,7 @@ public:
 private:
   ODriveUSB* odrive;
 
+  std::vector<uint64_t> serial_numbers_;
   std::vector<int> axis_;
   std::vector<float> torque_constant_;
   std::vector<bool> enable_watchdog_;
