@@ -12,10 +12,10 @@ ODrive driver for ros2_control
 - [x] Support position, speed, torque commands
 - [x] Support position, speed, torque feedbacks
 - [x] Support using multiple ODrives
-- [x] Support control mode switch
+- [x] Support smooth switching of control modes
 - [x] Unit conversion adheres to [REP-103](<https://www.ros.org/reps/rep-0103.html>)
-- [x] Support using any or both of axes on a single ODrive
-- [x] Allow two axes running in different control modes
+- [x] Support using any or both of axes on each ODrive
+- [x] Allow multiple axes running in different control modes
 - [x] Auto watchdog feeding
 ## Todo
 - [ ] Support serial port and CAN
