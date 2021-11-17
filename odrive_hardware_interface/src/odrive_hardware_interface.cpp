@@ -75,26 +75,27 @@ return_type ODriveHardwareInterface::configure(const hardware_interface::Hardwar
       return return_type::ERROR;
     }
 
+    serial_numbers_.push_back(std::stoull(joint.parameters.at("serial_number"), 0, 16));
     axis_.push_back(std::stoi(joint.parameters.at("axis")));
     enable_watchdog_.push_back(std::stoi(joint.parameters.at("enable_watchdog")));
   }
 
   odrive = new ODriveUSB();
-  CHECK(odrive->init());
+  CHECK(odrive->init(serial_numbers_));
 
   for (size_t i = 0; i < info_.joints.size(); i++)
   {
     float torque_constant;
-    CHECK(odrive->read(odrive->odrive_handle_, AXIS__MOTOR__CONFIG__TORQUE_CONSTANT + per_axis_offset * axis_[i],
+    CHECK(odrive->read(odrive->odrive_handles_[i], AXIS__MOTOR__CONFIG__TORQUE_CONSTANT + per_axis_offset * axis_[i],
                        torque_constant));
     torque_constant_.push_back(torque_constant);
 
     if (enable_watchdog_[i])
     {
-      CHECK(odrive->write(odrive->odrive_handle_, AXIS__CONFIG__WATCHDOG_TIMEOUT + per_axis_offset * axis_[i],
+      CHECK(odrive->write(odrive->odrive_handles_[i], AXIS__CONFIG__WATCHDOG_TIMEOUT + per_axis_offset * axis_[i],
                           std::stof(info_.joints[i].parameters.at("watchdog_timeout"))));
     }
-    CHECK(odrive->write(odrive->odrive_handle_, AXIS__CONFIG__ENABLE_WATCHDOG + per_axis_offset * axis_[i],
+    CHECK(odrive->write(odrive->odrive_handles_[i], AXIS__CONFIG__ENABLE_WATCHDOG + per_axis_offset * axis_[i],
                         (bool)enable_watchdog_[i]));
   }
 
@@ -192,20 +193,20 @@ return_type ODriveHardwareInterface::prepare_command_mode_switch(const std::vect
       {
         case integration_level_t::UNDEFINED:
           requested_state = AXIS_STATE_IDLE;
-          CHECK(odrive->write(odrive->odrive_handle_, AXIS__REQUESTED_STATE + per_axis_offset * axis_[i],
+          CHECK(odrive->write(odrive->odrive_handles_[i], AXIS__REQUESTED_STATE + per_axis_offset * axis_[i],
                               requested_state));
           break;
 
         case integration_level_t::EFFORT:
           hw_commands_efforts_[i] = hw_efforts_[i];
           control_mode = (int32_t)new_modes[i];
-          CHECK(odrive->write(odrive->odrive_handle_,
+          CHECK(odrive->write(odrive->odrive_handles_[i],
                               AXIS__CONTROLLER__CONFIG__CONTROL_MODE + per_axis_offset * axis_[i], control_mode));
           input_torque = hw_commands_efforts_[i];
-          CHECK(odrive->write(odrive->odrive_handle_, AXIS__CONTROLLER__INPUT_TORQUE + per_axis_offset * axis_[i],
+          CHECK(odrive->write(odrive->odrive_handles_[i], AXIS__CONTROLLER__INPUT_TORQUE + per_axis_offset * axis_[i],
                               input_torque));
           requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL;
-          CHECK(odrive->write(odrive->odrive_handle_, AXIS__REQUESTED_STATE + per_axis_offset * axis_[i],
+          CHECK(odrive->write(odrive->odrive_handles_[i], AXIS__REQUESTED_STATE + per_axis_offset * axis_[i],
                               requested_state));
           break;
 
@@ -213,16 +214,16 @@ return_type ODriveHardwareInterface::prepare_command_mode_switch(const std::vect
           hw_commands_velocities_[i] = hw_velocities_[i];
           hw_commands_efforts_[i] = 0;
           control_mode = (int32_t)new_modes[i];
-          CHECK(odrive->write(odrive->odrive_handle_,
+          CHECK(odrive->write(odrive->odrive_handles_[i],
                               AXIS__CONTROLLER__CONFIG__CONTROL_MODE + per_axis_offset * axis_[i], control_mode));
           input_vel = hw_commands_velocities_[i] / 2 / M_PI;
-          CHECK(odrive->write(odrive->odrive_handle_, AXIS__CONTROLLER__INPUT_VEL + per_axis_offset * axis_[i],
+          CHECK(odrive->write(odrive->odrive_handles_[i], AXIS__CONTROLLER__INPUT_VEL + per_axis_offset * axis_[i],
                               input_vel));
           input_torque = hw_commands_efforts_[i];
-          CHECK(odrive->write(odrive->odrive_handle_, AXIS__CONTROLLER__INPUT_TORQUE + per_axis_offset * axis_[i],
+          CHECK(odrive->write(odrive->odrive_handles_[i], AXIS__CONTROLLER__INPUT_TORQUE + per_axis_offset * axis_[i],
                               input_torque));
           requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL;
-          CHECK(odrive->write(odrive->odrive_handle_, AXIS__REQUESTED_STATE + per_axis_offset * axis_[i],
+          CHECK(odrive->write(odrive->odrive_handles_[i], AXIS__REQUESTED_STATE + per_axis_offset * axis_[i],
                               requested_state));
           break;
 
@@ -231,19 +232,19 @@ return_type ODriveHardwareInterface::prepare_command_mode_switch(const std::vect
           hw_commands_velocities_[i] = 0;
           hw_commands_efforts_[i] = 0;
           control_mode = (int32_t)new_modes[i];
-          CHECK(odrive->write(odrive->odrive_handle_,
+          CHECK(odrive->write(odrive->odrive_handles_[i],
                               AXIS__CONTROLLER__CONFIG__CONTROL_MODE + per_axis_offset * axis_[i], control_mode));
           input_pos = hw_commands_positions_[i] / 2 / M_PI;
-          CHECK(odrive->write(odrive->odrive_handle_, AXIS__CONTROLLER__INPUT_POS + per_axis_offset * axis_[i],
+          CHECK(odrive->write(odrive->odrive_handles_[i], AXIS__CONTROLLER__INPUT_POS + per_axis_offset * axis_[i],
                               input_pos));
           input_vel = hw_commands_velocities_[i] / 2 / M_PI;
-          CHECK(odrive->write(odrive->odrive_handle_, AXIS__CONTROLLER__INPUT_VEL + per_axis_offset * axis_[i],
+          CHECK(odrive->write(odrive->odrive_handles_[i], AXIS__CONTROLLER__INPUT_VEL + per_axis_offset * axis_[i],
                               input_vel));
           input_torque = hw_commands_efforts_[i];
-          CHECK(odrive->write(odrive->odrive_handle_, AXIS__CONTROLLER__INPUT_TORQUE + per_axis_offset * axis_[i],
+          CHECK(odrive->write(odrive->odrive_handles_[i], AXIS__CONTROLLER__INPUT_TORQUE + per_axis_offset * axis_[i],
                               input_torque));
           requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL;
-          CHECK(odrive->write(odrive->odrive_handle_, AXIS__REQUESTED_STATE + per_axis_offset * axis_[i],
+          CHECK(odrive->write(odrive->odrive_handles_[i], AXIS__REQUESTED_STATE + per_axis_offset * axis_[i],
                               requested_state));
           break;
       }
@@ -260,9 +261,9 @@ return_type ODriveHardwareInterface::start()
   {
     if (enable_watchdog_[i])
     {
-      CHECK(odrive->call(odrive->odrive_handle_, AXIS__WATCHDOG_FEED + per_axis_offset * axis_[i]));
+      CHECK(odrive->call(odrive->odrive_handles_[i], AXIS__WATCHDOG_FEED + per_axis_offset * axis_[i]));
     }
-    CHECK(odrive->call(odrive->odrive_handle_, AXIS__CLEAR_ERRORS + per_axis_offset * axis_[i]));
+    CHECK(odrive->call(odrive->odrive_handles_[i], AXIS__CLEAR_ERRORS + per_axis_offset * axis_[i]));
   }
 
   status_ = hardware_interface::status::STARTED;
@@ -274,7 +275,8 @@ return_type ODriveHardwareInterface::stop()
   int32_t requested_state = AXIS_STATE_IDLE;
   for (size_t i = 0; i < info_.joints.size(); i++)
   {
-    CHECK(odrive->write(odrive->odrive_handle_, AXIS__REQUESTED_STATE + per_axis_offset * axis_[i], requested_state));
+    CHECK(
+        odrive->write(odrive->odrive_handles_[i], AXIS__REQUESTED_STATE + per_axis_offset * axis_[i], requested_state));
   }
 
   status_ = hardware_interface::status::STOPPED;
@@ -288,33 +290,36 @@ return_type ODriveHardwareInterface::read()
     float Iq_measured, vel_estimate, pos_estimate, fet_temperature, motor_temperature;
     int32_t axis_error, motor_error, encoder_error, controller_error;
 
-    CHECK(odrive->read(odrive->odrive_handle_, AXIS__MOTOR__CURRENT_CONTROL__IQ_MEASURED + per_axis_offset * axis_[i],
-                       Iq_measured));
+    CHECK(odrive->read(odrive->odrive_handles_[i],
+                       AXIS__MOTOR__CURRENT_CONTROL__IQ_MEASURED + per_axis_offset * axis_[i], Iq_measured));
     hw_efforts_[i] = Iq_measured * torque_constant_[i];
 
-    CHECK(odrive->read(odrive->odrive_handle_, AXIS__ENCODER__VEL_ESTIMATE + per_axis_offset * axis_[i], vel_estimate));
+    CHECK(odrive->read(odrive->odrive_handles_[i], AXIS__ENCODER__VEL_ESTIMATE + per_axis_offset * axis_[i],
+                       vel_estimate));
     hw_velocities_[i] = vel_estimate * 2 * M_PI;
 
-    CHECK(odrive->read(odrive->odrive_handle_, AXIS__ENCODER__POS_ESTIMATE + per_axis_offset * axis_[i], pos_estimate));
+    CHECK(odrive->read(odrive->odrive_handles_[i], AXIS__ENCODER__POS_ESTIMATE + per_axis_offset * axis_[i],
+                       pos_estimate));
     hw_positions_[i] = pos_estimate * 2 * M_PI;
 
-    CHECK(odrive->read(odrive->odrive_handle_, AXIS__ERROR + per_axis_offset * axis_[i], axis_error));
+    CHECK(odrive->read(odrive->odrive_handles_[i], AXIS__ERROR + per_axis_offset * axis_[i], axis_error));
     hw_axis_errors_[i] = axis_error;
 
-    CHECK(odrive->read(odrive->odrive_handle_, AXIS__MOTOR__ERROR + per_axis_offset * axis_[i], motor_error));
+    CHECK(odrive->read(odrive->odrive_handles_[i], AXIS__MOTOR__ERROR + per_axis_offset * axis_[i], motor_error));
     hw_motor_errors_[i] = motor_error;
 
-    CHECK(odrive->read(odrive->odrive_handle_, AXIS__ENCODER__ERROR + per_axis_offset * axis_[i], encoder_error));
+    CHECK(odrive->read(odrive->odrive_handles_[i], AXIS__ENCODER__ERROR + per_axis_offset * axis_[i], encoder_error));
     hw_encoder_errors_[i] = encoder_error;
 
-    CHECK(odrive->read(odrive->odrive_handle_, AXIS__CONTROLLER__ERROR + per_axis_offset * axis_[i], controller_error));
+    CHECK(odrive->read(odrive->odrive_handles_[i], AXIS__CONTROLLER__ERROR + per_axis_offset * axis_[i],
+                       controller_error));
     hw_controller_errors_[i] = controller_error;
 
-    CHECK(odrive->read(odrive->odrive_handle_, AXIS__FET_THERMISTOR__TEMPERATURE + per_axis_offset * axis_[i],
+    CHECK(odrive->read(odrive->odrive_handles_[i], AXIS__FET_THERMISTOR__TEMPERATURE + per_axis_offset * axis_[i],
                        fet_temperature));
     hw_fet_temperatures_[i] = fet_temperature;
 
-    CHECK(odrive->read(odrive->odrive_handle_, AXIS__MOTOR_THERMISTOR__TEMPERATURE + per_axis_offset * axis_[i],
+    CHECK(odrive->read(odrive->odrive_handles_[i], AXIS__MOTOR_THERMISTOR__TEMPERATURE + per_axis_offset * axis_[i],
                        motor_temperature));
     hw_motor_temperatures_[i] = motor_temperature;
   }
@@ -332,23 +337,23 @@ return_type ODriveHardwareInterface::write()
     {
       case integration_level_t::POSITION:
         input_pos = hw_commands_positions_[i] / 2 / M_PI;
-        CHECK(
-            odrive->write(odrive->odrive_handle_, AXIS__CONTROLLER__INPUT_POS + per_axis_offset * axis_[i], input_pos));
+        CHECK(odrive->write(odrive->odrive_handles_[i], AXIS__CONTROLLER__INPUT_POS + per_axis_offset * axis_[i],
+                            input_pos));
 
       case integration_level_t::VELOCITY:
         input_vel = hw_commands_velocities_[i] / 2 / M_PI;
-        CHECK(
-            odrive->write(odrive->odrive_handle_, AXIS__CONTROLLER__INPUT_VEL + per_axis_offset * axis_[i], input_vel));
+        CHECK(odrive->write(odrive->odrive_handles_[i], AXIS__CONTROLLER__INPUT_VEL + per_axis_offset * axis_[i],
+                            input_vel));
 
       case integration_level_t::EFFORT:
         input_torque = hw_commands_efforts_[i];
-        CHECK(odrive->write(odrive->odrive_handle_, AXIS__CONTROLLER__INPUT_TORQUE + per_axis_offset * axis_[i],
+        CHECK(odrive->write(odrive->odrive_handles_[i], AXIS__CONTROLLER__INPUT_TORQUE + per_axis_offset * axis_[i],
                             input_torque));
 
       case integration_level_t::UNDEFINED:
         if (enable_watchdog_[i])
         {
-          CHECK(odrive->call(odrive->odrive_handle_, AXIS__WATCHDOG_FEED + per_axis_offset * axis_[i]));
+          CHECK(odrive->call(odrive->odrive_handles_[i], AXIS__WATCHDOG_FEED + per_axis_offset * axis_[i]));
         }
     }
   }

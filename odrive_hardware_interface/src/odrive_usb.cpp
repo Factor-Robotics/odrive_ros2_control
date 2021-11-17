@@ -19,17 +19,17 @@ namespace odrive
 ODriveUSB::ODriveUSB()
 {
   libusb_context_ = NULL;
-  odrive_handle_ = NULL;
 }
 
 ODriveUSB::~ODriveUSB()
 {
-  if (odrive_handle_)
+  odrive_handles_.erase(odrive_handles_.begin(), odrive_handles_.end());
+  for (auto it = odrive_map_.begin(); it != odrive_map_.end(); it++)
   {
-    libusb_release_interface(odrive_handle_, 2);
-    libusb_close(odrive_handle_);
-    odrive_handle_ = NULL;
+    libusb_release_interface(it->second, 2);
+    libusb_close(it->second);
   }
+  odrive_map_.erase(odrive_map_.begin(), odrive_map_.end());
   if (libusb_context_)
   {
     libusb_exit(libusb_context_);
@@ -37,7 +37,7 @@ ODriveUSB::~ODriveUSB()
   }
 }
 
-int ODriveUSB::init()
+int ODriveUSB::init(const std::vector<uint64_t>& serial_numbers)
 {
   int ret = libusb_init(&libusb_context_);
   if (ret != LIBUSB_SUCCESS)
@@ -83,18 +83,42 @@ int ODriveUSB::init()
       uint64_t serial_number;
       if ((read(device_handle, SERIAL_NUMBER, serial_number)) != LIBUSB_SUCCESS)
       {
+        libusb_release_interface(device_handle, 2);
         libusb_close(device_handle);
         continue;
       }
-      odrive_handle_ = device_handle;
-      std::cout << "Connected to ODrive " << std::hex << serial_number << std::endl;
-      break;
+      odrive_map_.insert(std::pair<uint64_t, libusb_device_handle*>(serial_number, device_handle));
     }
   }
 
   libusb_free_device_list(device_list, 1);
-  ret = (odrive_handle_) ? LIBUSB_SUCCESS : LIBUSB_ERROR_NO_DEVICE;
-  return ret;
+  if (!odrive_map_.size())
+  {
+    return LIBUSB_ERROR_NO_DEVICE;
+  }
+
+  for (size_t i = 0; i < serial_numbers.size(); i++)
+  {
+    if (!serial_numbers[i] && odrive_map_.size() == 1)
+    {
+      odrive_handles_.push_back(odrive_map_.begin()->second);
+      std::cout << "Connected to ODrive " << std::hex << odrive_map_.begin()->first << std::endl;
+    }
+    else
+    {
+      auto it = odrive_map_.find(serial_numbers[i]);
+      if (it != odrive_map_.end())
+      {
+        odrive_handles_.push_back(it->second);
+        std::cout << "Connected to ODrive " << std::hex << it->first << std::endl;
+      }
+      else
+      {
+        return LIBUSB_ERROR_NO_DEVICE;
+      }
+    }
+  }
+  return LIBUSB_SUCCESS;
 }
 
 template <typename T>
