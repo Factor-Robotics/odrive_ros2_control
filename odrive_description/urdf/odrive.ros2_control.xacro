@@ -10,48 +10,20 @@
 
       <xacro:if value="${enable_joint0}">
         <joint name="joint0">
-          <command_interface  name="position" />
-          <command_interface  name="velocity" />
-          <command_interface  name="effort" />
-          <state_interface    name="position" />
-          <state_interface    name="velocity" />
-          <state_interface    name="effort" />
           <param name="serial_number">000000000000</param>
           <param name="axis">0</param>
           <param name="enable_watchdog">1</param>
           <param name="watchdog_timeout">0.1</param>
         </joint>
-        <sensor name="axis0">
-          <state_interface    name="axis_error" />
-          <state_interface    name="motor_error" />
-          <state_interface    name="encoder_error" />
-          <state_interface    name="controller_error" />
-          <state_interface    name="fet_temperature" />
-          <state_interface    name="motor_temperature" />
-        </sensor>
       </xacro:if>
 
       <xacro:if value="${enable_joint1}">
         <joint name="joint1">
-          <command_interface  name="position" />
-          <command_interface  name="velocity" />
-          <command_interface  name="effort" />
-          <state_interface    name="position" />
-          <state_interface    name="velocity" />
-          <state_interface    name="effort" />
           <param name="serial_number">000000000000</param>
           <param name="axis">1</param>
           <param name="enable_watchdog">1</param>
           <param name="watchdog_timeout">0.1</param>
         </joint>
-        <sensor name="axis1">
-          <state_interface    name="axis_error" />
-          <state_interface    name="motor_error" />
-          <state_interface    name="encoder_error" />
-          <state_interface    name="controller_error" />
-          <state_interface    name="fet_temperature" />
-          <state_interface    name="motor_temperature" />
-        </sensor>
       </xacro:if>
     </ros2_control>
 
