@@ -30,51 +30,15 @@ return_type ODriveHardwareInterface::configure(const hardware_interface::Hardwar
   hw_commands_positions_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
   hw_commands_velocities_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
   hw_commands_efforts_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
-  hw_axis_errors_.resize(info_.sensors.size(), std::numeric_limits<double>::quiet_NaN());
-  hw_motor_errors_.resize(info_.sensors.size(), std::numeric_limits<double>::quiet_NaN());
-  hw_encoder_errors_.resize(info_.sensors.size(), std::numeric_limits<double>::quiet_NaN());
-  hw_controller_errors_.resize(info_.sensors.size(), std::numeric_limits<double>::quiet_NaN());
-  hw_fet_temperatures_.resize(info_.sensors.size(), std::numeric_limits<double>::quiet_NaN());
-  hw_motor_temperatures_.resize(info_.sensors.size(), std::numeric_limits<double>::quiet_NaN());
+  hw_axis_errors_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+  hw_motor_errors_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+  hw_encoder_errors_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+  hw_controller_errors_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+  hw_fet_temperatures_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+  hw_motor_temperatures_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
 
   for (const hardware_interface::ComponentInfo& joint : info_.joints)
   {
-    if (joint.command_interfaces.size() != 3)
-    {
-      RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"), "Joint '%s' has %d command interfaces. 3 expected.",
-                   joint.name.c_str(), joint.command_interfaces.size());
-      return return_type::ERROR;
-    }
-
-    if (!(joint.command_interfaces[0].name == hardware_interface::HW_IF_POSITION ||
-          joint.command_interfaces[0].name == hardware_interface::HW_IF_VELOCITY ||
-          joint.command_interfaces[0].name == hardware_interface::HW_IF_EFFORT))
-    {
-      RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"),
-                   "Joint '%s' has %s command interface. Expected %s, %s, or %s.", joint.name.c_str(),
-                   joint.command_interfaces[0].name.c_str(), hardware_interface::HW_IF_POSITION,
-                   hardware_interface::HW_IF_VELOCITY, hardware_interface::HW_IF_EFFORT);
-      return return_type::ERROR;
-    }
-
-    if (joint.state_interfaces.size() != 3)
-    {
-      RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"), "Joint '%s'has %d state interfaces. 3 expected.",
-                   joint.name.c_str(), joint.state_interfaces.size());
-      return return_type::ERROR;
-    }
-
-    if (!(joint.state_interfaces[0].name == hardware_interface::HW_IF_POSITION ||
-          joint.state_interfaces[0].name == hardware_interface::HW_IF_VELOCITY ||
-          joint.state_interfaces[0].name == hardware_interface::HW_IF_EFFORT))
-    {
-      RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"),
-                   "Joint '%s' has %s state interface. Expected %s, %s, or %s.", joint.name.c_str(),
-                   joint.state_interfaces[0].name.c_str(), hardware_interface::HW_IF_POSITION,
-                   hardware_interface::HW_IF_VELOCITY, hardware_interface::HW_IF_EFFORT);
-      return return_type::ERROR;
-    }
-
     serial_numbers_.push_back(std::stoull(joint.parameters.at("serial_number"), 0, 16));
     axis_.push_back(std::stoi(joint.parameters.at("axis")));
     enable_watchdog_.push_back(std::stoi(joint.parameters.at("enable_watchdog")));
@@ -116,17 +80,17 @@ std::vector<hardware_interface::StateInterface> ODriveHardwareInterface::export_
     state_interfaces.emplace_back(hardware_interface::StateInterface(
         info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_positions_[i]));
     state_interfaces.emplace_back(
-        hardware_interface::StateInterface(info_.sensors[i].name, "motor_temperature", &hw_motor_temperatures_[i]));
+        hardware_interface::StateInterface(info_.joints[i].name, "axis_error", &hw_axis_errors_[i]));
     state_interfaces.emplace_back(
-        hardware_interface::StateInterface(info_.sensors[i].name, "fet_temperature", &hw_fet_temperatures_[i]));
+        hardware_interface::StateInterface(info_.joints[i].name, "motor_error", &hw_motor_errors_[i]));
     state_interfaces.emplace_back(
-        hardware_interface::StateInterface(info_.sensors[i].name, "motor_error", &hw_motor_errors_[i]));
+        hardware_interface::StateInterface(info_.joints[i].name, "encoder_error", &hw_encoder_errors_[i]));
     state_interfaces.emplace_back(
-        hardware_interface::StateInterface(info_.sensors[i].name, "encoder_error", &hw_encoder_errors_[i]));
+        hardware_interface::StateInterface(info_.joints[i].name, "controller_error", &hw_controller_errors_[i]));
     state_interfaces.emplace_back(
-        hardware_interface::StateInterface(info_.sensors[i].name, "controller_error", &hw_controller_errors_[i]));
+        hardware_interface::StateInterface(info_.joints[i].name, "fet_temperature", &hw_fet_temperatures_[i]));
     state_interfaces.emplace_back(
-        hardware_interface::StateInterface(info_.sensors[i].name, "axis_error", &hw_axis_errors_[i]));
+        hardware_interface::StateInterface(info_.joints[i].name, "motor_temperature", &hw_motor_temperatures_[i]));
   }
 
   return state_interfaces;
