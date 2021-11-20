@@ -23,13 +23,13 @@ ODriveUSB::ODriveUSB()
 
 ODriveUSB::~ODriveUSB()
 {
-  odrive_handles_.erase(odrive_handles_.begin(), odrive_handles_.end());
   for (auto it = odrive_map_.begin(); it != odrive_map_.end(); it++)
   {
     libusb_release_interface(it->second, 2);
     libusb_close(it->second);
   }
-  odrive_map_.erase(odrive_map_.begin(), odrive_map_.end());
+  odrive_map_.clear();
+
   if (libusb_context_)
   {
     libusb_exit(libusb_context_);
@@ -37,7 +37,7 @@ ODriveUSB::~ODriveUSB()
   }
 }
 
-int ODriveUSB::init(const std::vector<uint64_t>& serial_numbers)
+int ODriveUSB::init(const std::vector<std::vector<int64_t>>& serial_numbers)
 {
   int ret = libusb_init(&libusb_context_);
   if (ret != LIBUSB_SUCCESS)
@@ -87,7 +87,7 @@ int ODriveUSB::init(const std::vector<uint64_t>& serial_numbers)
         libusb_close(device_handle);
         continue;
       }
-      odrive_map_.insert(std::pair<uint64_t, libusb_device_handle*>(serial_number, device_handle));
+      odrive_map_.insert(std::pair<int64_t, libusb_device_handle*>(-serial_number, device_handle));
     }
   }
 
@@ -97,28 +97,61 @@ int ODriveUSB::init(const std::vector<uint64_t>& serial_numbers)
     return LIBUSB_ERROR_NO_DEVICE;
   }
 
-  for (size_t i = 0; i < serial_numbers.size(); i++)
+  if (odrive_map_.size() == 1)
   {
-    if (!serial_numbers[i] && odrive_map_.size() == 1)
+    auto it = odrive_map_.begin();
+    odrive_map_.insert(std::pair<int64_t, libusb_device_handle*>(-it->first, it->second));
+    std::cout << "Connected to ODrive " << std::hex << -it->first << std::endl;
+    odrive_map_.erase(it);
+  }
+  else
+  {
+    for (size_t i = 0; i < 2; i++)
     {
-      odrive_handles_.push_back(odrive_map_.begin()->second);
-      std::cout << "Connected to ODrive " << std::hex << odrive_map_.begin()->first << std::endl;
-    }
-    else
-    {
-      auto it = odrive_map_.find(serial_numbers[i]);
-      if (it != odrive_map_.end())
+      for (size_t j = 0; j < serial_numbers[0].size(); j++)
       {
-        odrive_handles_.push_back(it->second);
-        std::cout << "Connected to ODrive " << std::hex << it->first << std::endl;
-      }
-      else
-      {
-        return LIBUSB_ERROR_NO_DEVICE;
+        if (!odrive_map_.count(serial_numbers[i][j]))
+        {
+          auto it = odrive_map_.find(-serial_numbers[i][j]);
+          if (it != odrive_map_.end())
+          {
+            odrive_map_.insert(std::pair<int64_t, libusb_device_handle*>(-it->first, it->second));
+            std::cout << "Connected to ODrive " << std::hex << -it->first << std::endl;
+            odrive_map_.erase(it);
+          }
+          else
+          {
+            return LIBUSB_ERROR_NO_DEVICE;
+          }
+        }
       }
     }
   }
+
+  for (auto it = odrive_map_.begin(); it != odrive_map_.end(); it++)
+  {
+    if (it->first < 0)
+    {
+      libusb_release_interface(it->second, 2);
+      libusb_close(it->second);
+      odrive_map_.erase(it);
+    }
+  }
+
   return LIBUSB_SUCCESS;
+}
+
+template <typename T>
+int ODriveUSB::read(int64_t& serial_number, short endpoint_id, T& value)
+{
+  if (serial_number)
+  {
+    return read(odrive_map_[serial_number], endpoint_id, value);
+  }
+  else
+  {
+    return read(odrive_map_.begin()->second, endpoint_id, value);
+  }
 }
 
 template <typename T>
@@ -139,6 +172,19 @@ int ODriveUSB::read(libusb_device_handle* odrive_handle, short endpoint_id, T& v
 }
 
 template <typename T>
+int ODriveUSB::write(int64_t& serial_number, short endpoint_id, const T& value)
+{
+  if (serial_number)
+  {
+    return write(odrive_map_[serial_number], endpoint_id, value);
+  }
+  else
+  {
+    return write(odrive_map_.begin()->second, endpoint_id, value);
+  }
+}
+
+template <typename T>
 int ODriveUSB::write(libusb_device_handle* odrive_handle, short endpoint_id, const T& value)
 {
   bytes request_payload;
@@ -146,10 +192,22 @@ int ODriveUSB::write(libusb_device_handle* odrive_handle, short endpoint_id, con
 
   for (size_t i = 0; i < sizeof(value); i++)
   {
-    request_payload.push_back(((unsigned char*)&value)[i]);
+    request_payload.emplace_back(((unsigned char*)&value)[i]);
   }
 
   return endpointOperation(odrive_handle, endpoint_id, 0, request_payload, response_payload, 1);
+}
+
+int ODriveUSB::call(int64_t& serial_number, short endpoint_id)
+{
+  if (serial_number)
+  {
+    return call(odrive_map_[serial_number], endpoint_id);
+  }
+  else
+  {
+    return call(odrive_map_.begin()->second, endpoint_id);
+  }
 }
 
 int ODriveUSB::call(libusb_device_handle* odrive_handle, short endpoint_id)
@@ -195,7 +253,7 @@ int ODriveUSB::endpointOperation(libusb_device_handle* odrive_handle, short endp
 
     for (int i = 0; i < transferred; i++)
     {
-      response_packet.push_back(response_data[i]);
+      response_packet.emplace_back(response_data[i]);
     }
 
     response_payload = decodePacket(response_packet);
@@ -209,21 +267,21 @@ bytes ODriveUSB::encodePacket(short sequence_number, short endpoint_id, short re
 {
   bytes packet;
 
-  packet.push_back((sequence_number >> 0) & 0xFF);
-  packet.push_back((sequence_number >> 8) & 0xFF);
-  packet.push_back((endpoint_id >> 0) & 0xFF);
-  packet.push_back((endpoint_id >> 8) & 0xFF);
-  packet.push_back((response_size >> 0) & 0xFF);
-  packet.push_back((response_size >> 8) & 0xFF);
+  packet.emplace_back((sequence_number >> 0) & 0xFF);
+  packet.emplace_back((sequence_number >> 8) & 0xFF);
+  packet.emplace_back((endpoint_id >> 0) & 0xFF);
+  packet.emplace_back((endpoint_id >> 8) & 0xFF);
+  packet.emplace_back((response_size >> 0) & 0xFF);
+  packet.emplace_back((response_size >> 8) & 0xFF);
 
   for (uint8_t b : request_payload)
   {
-    packet.push_back(b);
+    packet.emplace_back(b);
   }
 
   short crc = ((endpoint_id & 0x7fff) == 0) ? ODRIVE_PROTOCOL_VERSION : json_crc;
-  packet.push_back((crc >> 0) & 0xFF);
-  packet.push_back((crc >> 8) & 0xFF);
+  packet.emplace_back((crc >> 0) & 0xFF);
+  packet.emplace_back((crc >> 8) & 0xFF);
 
   return packet;
 }
@@ -234,27 +292,27 @@ bytes ODriveUSB::decodePacket(bytes& response_packet)
 
   for (bytes::size_type i = 2; i < response_packet.size(); ++i)
   {
-    payload.push_back(response_packet[i]);
+    payload.emplace_back(response_packet[i]);
   }
 
   return payload;
 }
 
-template int ODriveUSB::read(libusb_device_handle*, short, bool&);
-template int ODriveUSB::read(libusb_device_handle*, short, float&);
-template int ODriveUSB::read(libusb_device_handle*, short, int32_t&);
-template int ODriveUSB::read(libusb_device_handle*, short, int64_t&);
-template int ODriveUSB::read(libusb_device_handle*, short, uint8_t&);
-template int ODriveUSB::read(libusb_device_handle*, short, uint16_t&);
-template int ODriveUSB::read(libusb_device_handle*, short, uint32_t&);
-template int ODriveUSB::read(libusb_device_handle*, short, uint64_t&);
+template int ODriveUSB::read(int64_t&, short, bool&);
+template int ODriveUSB::read(int64_t&, short, float&);
+template int ODriveUSB::read(int64_t&, short, int32_t&);
+template int ODriveUSB::read(int64_t&, short, int64_t&);
+template int ODriveUSB::read(int64_t&, short, uint8_t&);
+template int ODriveUSB::read(int64_t&, short, uint16_t&);
+template int ODriveUSB::read(int64_t&, short, uint32_t&);
+template int ODriveUSB::read(int64_t&, short, uint64_t&);
 
-template int ODriveUSB::write(libusb_device_handle*, short, const bool&);
-template int ODriveUSB::write(libusb_device_handle*, short, const float&);
-template int ODriveUSB::write(libusb_device_handle*, short, const int32_t&);
-template int ODriveUSB::write(libusb_device_handle*, short, const int64_t&);
-template int ODriveUSB::write(libusb_device_handle*, short, const uint8_t&);
-template int ODriveUSB::write(libusb_device_handle*, short, const uint16_t&);
-template int ODriveUSB::write(libusb_device_handle*, short, const uint32_t&);
-template int ODriveUSB::write(libusb_device_handle*, short, const uint64_t&);
+template int ODriveUSB::write(int64_t&, short, const bool&);
+template int ODriveUSB::write(int64_t&, short, const float&);
+template int ODriveUSB::write(int64_t&, short, const int32_t&);
+template int ODriveUSB::write(int64_t&, short, const int64_t&);
+template int ODriveUSB::write(int64_t&, short, const uint8_t&);
+template int ODriveUSB::write(int64_t&, short, const uint16_t&);
+template int ODriveUSB::write(int64_t&, short, const uint32_t&);
+template int ODriveUSB::write(int64_t&, short, const uint64_t&);
 }  // namespace odrive
