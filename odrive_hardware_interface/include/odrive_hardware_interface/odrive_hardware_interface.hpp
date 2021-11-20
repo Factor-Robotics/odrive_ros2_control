@@ -75,11 +75,12 @@ public:
 private:
   ODriveUSB* odrive;
 
-  std::vector<uint64_t> serial_numbers_;
-  std::vector<int> axis_;
-  std::vector<float> torque_constant_;
-  std::vector<bool> enable_watchdog_;
-  std::vector<float> watchdog_timeout_;
+  std::vector<std::vector<int64_t>> serial_numbers_;
+  std::vector<int> axes_;
+  std::vector<float> torque_constants_;
+  std::vector<bool> enable_watchdogs_;
+
+  std::vector<double> hw_vbus_voltages_;
 
   std::vector<double> hw_commands_positions_;
   std::vector<double> hw_commands_velocities_;
@@ -87,6 +88,7 @@ private:
   std::vector<double> hw_positions_;
   std::vector<double> hw_velocities_;
   std::vector<double> hw_efforts_;
+
   std::vector<double> hw_axis_errors_;
   std::vector<double> hw_motor_errors_;
   std::vector<double> hw_encoder_errors_;
