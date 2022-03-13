@@ -17,11 +17,11 @@
 
 namespace odrive_hardware_interface
 {
-return_type ODriveHardwareInterface::configure(const hardware_interface::HardwareInfo& info)
+CallbackReturn ODriveHardwareInterface::on_init(const hardware_interface::HardwareInfo& info)
 {
-  if (configure_default(info) != return_type::OK)
+  if (hardware_interface::SystemInterface::on_init(info) != CallbackReturn::SUCCESS)
   {
-    return return_type::ERROR;
+    return CallbackReturn::ERROR;
   }
 
   serial_numbers_.resize(2);
@@ -75,7 +75,7 @@ return_type ODriveHardwareInterface::configure(const hardware_interface::Hardwar
 
   control_level_.resize(info_.joints.size(), integration_level_t::UNDEFINED);
   status_ = hardware_interface::status::CONFIGURED;
-  return return_type::OK;
+  return CallbackReturn::SUCCESS;
 }
 
 std::vector<hardware_interface::StateInterface> ODriveHardwareInterface::export_state_interfaces()
@@ -235,7 +235,7 @@ return_type ODriveHardwareInterface::prepare_command_mode_switch(const std::vect
   return return_type::OK;
 }
 
-return_type ODriveHardwareInterface::start()
+CallbackReturn ODriveHardwareInterface::on_activate(const rclcpp_lifecycle::State & previous_state)
 {
   for (size_t i = 0; i < info_.joints.size(); i++)
   {
@@ -247,10 +247,10 @@ return_type ODriveHardwareInterface::start()
   }
 
   status_ = hardware_interface::status::STARTED;
-  return return_type::OK;
+  return CallbackReturn::SUCCESS;
 }
 
-return_type ODriveHardwareInterface::stop()
+CallbackReturn ODriveHardwareInterface::on_deactivate(const rclcpp_lifecycle::State & previous_state)
 {
   int32_t requested_state = AXIS_STATE_IDLE;
   for (size_t i = 0; i < info_.joints.size(); i++)
@@ -259,7 +259,7 @@ return_type ODriveHardwareInterface::stop()
   }
 
   status_ = hardware_interface::status::STOPPED;
-  return return_type::OK;
+  return CallbackReturn::SUCCESS;
 }
 
 return_type ODriveHardwareInterface::read()
