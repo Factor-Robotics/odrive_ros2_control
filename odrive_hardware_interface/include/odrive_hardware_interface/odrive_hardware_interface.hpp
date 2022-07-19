@@ -24,6 +24,15 @@
 #include "odrive_hardware_interface/odrive_usb.hpp"
 #include "odrive_hardware_interface/visibility_control.hpp"
 
+// #include "hardware_interface/handle.hpp"
+// #include "hardware_interface/hardware_info.hpp"
+
+#include "rclcpp/clock.hpp"
+#include "rclcpp/duration.hpp"
+#include "rclcpp/macros.hpp"
+#include "rclcpp/time.hpp"
+// #include "rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp"
+
 #define AXIS_STATE_IDLE 1
 #define AXIS_STATE_CLOSED_LOOP_CONTROL 8
 
@@ -34,7 +43,7 @@
     if (ret != 0)                                                                                                      \
     {                                                                                                                  \
       RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"), libusb_error_name(ret));                             \
-      return CallbackReturn::ERROR;                                                                                       \
+      return return_type::ERROR;                                                                                       \
     }                                                                                                                  \
   } while (0)
 
@@ -82,10 +91,10 @@ public:
   CallbackReturn on_deactivate(const rclcpp_lifecycle::State & previous_state);
 
   ODRIVE_HARDWARE_INTERFACE_PUBLIC
-  return_type read();
+  return_type read(const rclcpp::Time & time, const rclcpp::Duration & period);
 
   ODRIVE_HARDWARE_INTERFACE_PUBLIC
-  return_type write();
+  return_type write(const rclcpp::Time & time, const rclcpp::Duration & period);
 
 private:
   ODriveUSB* odrive;

@@ -259,7 +259,7 @@ CallbackReturn ODriveHardwareInterface::on_deactivate(const rclcpp_lifecycle::St
   return CallbackReturn::SUCCESS;
 }
 
-return_type ODriveHardwareInterface::read()
+return_type ODriveHardwareInterface::read(const rclcpp::Time & time, const rclcpp::Duration & period)
 {
   for (size_t i = 0; i < info_.sensors.size(); i++)
   {
@@ -311,7 +311,7 @@ return_type ODriveHardwareInterface::read()
   return return_type::OK;
 }
 
-return_type ODriveHardwareInterface::write()
+return_type ODriveHardwareInterface::write(const rclcpp::Time & time, const rclcpp::Duration & period)
 {
   for (size_t i = 0; i < info_.joints.size(); i++)
   {
