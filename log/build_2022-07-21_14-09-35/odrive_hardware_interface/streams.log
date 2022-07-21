@@ -1,0 +1,35 @@
+[0.130s] Invoking command in '/home/dr/amr-travelobot/ros_ws/src/odrive_ros2_control/build/odrive_hardware_interface': /usr/bin/cmake /home/dr/amr-travelobot/ros_ws/src/odrive_ros2_control/odrive_hardware_interface -DCMAKE_INSTALL_PREFIX=/home/dr/amr-travelobot/ros_ws/src/odrive_ros2_control/install/odrive_hardware_interface
+[1.187s] -- The C compiler identification is GNU 9.4.0
+[1.731s] -- The CXX compiler identification is GNU 9.4.0
+[1.765s] -- Check for working C compiler: /usr/bin/cc
+[2.046s] -- Check for working C compiler: /usr/bin/cc -- works
+[2.048s] -- Detecting C compiler ABI info
+[2.339s] -- Detecting C compiler ABI info - done
+[2.393s] -- Detecting C compile features
+[2.395s] -- Detecting C compile features - done
+[2.407s] -- Check for working CXX compiler: /usr/bin/c++
+[2.735s] -- Check for working CXX compiler: /usr/bin/c++ -- works
+[2.739s] -- Detecting CXX compiler ABI info
+[3.051s] -- Detecting CXX compiler ABI info - done
+[3.102s] -- Detecting CXX compile features
+[3.105s] -- Detecting CXX compile features - done
+[3.216s] CMake Error at CMakeLists.txt:19 (find_package):
+[3.217s]   By not providing "Findament_cmake_auto.cmake" in CMAKE_MODULE_PATH this
+[3.218s]   project has asked CMake to find a package configuration file provided by
+[3.218s]   "ament_cmake_auto", but CMake did not find one.
+[3.218s] 
+[3.219s]   Could not find a package configuration file provided by "ament_cmake_auto"
+[3.219s]   with any of the following names:
+[3.220s] 
+[3.220s]     ament_cmake_autoConfig.cmake
+[3.221s]     ament_cmake_auto-config.cmake
+[3.221s] 
+[3.222s]   Add the installation prefix of "ament_cmake_auto" to CMAKE_PREFIX_PATH or
+[3.222s]   set "ament_cmake_auto_DIR" to a directory containing one of the above
+[3.223s]   files.  If "ament_cmake_auto" provides a separate development package or
+[3.223s]   SDK, be sure it has been installed.
+[3.223s] 
+[3.224s] 
+[3.224s] -- Configuring incomplete, errors occurred!
+[3.225s] See also "/home/dr/amr-travelobot/ros_ws/src/odrive_ros2_control/build/odrive_hardware_interface/CMakeFiles/CMakeOutput.log".
+[3.228s] Invoked command in '/home/dr/amr-travelobot/ros_ws/src/odrive_ros2_control/build/odrive_hardware_interface' returned '1': /usr/bin/cmake /home/dr/amr-travelobot/ros_ws/src/odrive_ros2_control/odrive_hardware_interface -DCMAKE_INSTALL_PREFIX=/home/dr/amr-travelobot/ros_ws/src/odrive_ros2_control/install/odrive_hardware_interface

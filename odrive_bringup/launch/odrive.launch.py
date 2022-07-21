@@ -33,7 +33,7 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "enable_joint1",
-            default_value="false",
+            default_value="true",
         )
     )
 

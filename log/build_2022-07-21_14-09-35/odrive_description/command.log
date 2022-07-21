@@ -1,0 +1,1 @@
+Invoking command in '/home/dr/amr-travelobot/ros_ws/src/odrive_ros2_control/build/odrive_description': /usr/bin/cmake /home/dr/amr-travelobot/ros_ws/src/odrive_ros2_control/odrive_description -DCMAKE_INSTALL_PREFIX=/home/dr/amr-travelobot/ros_ws/src/odrive_ros2_control/install/odrive_description

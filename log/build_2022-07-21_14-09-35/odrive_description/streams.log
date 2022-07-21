@@ -1,0 +1,34 @@
+[0.121s] Invoking command in '/home/dr/amr-travelobot/ros_ws/src/odrive_ros2_control/build/odrive_description': /usr/bin/cmake /home/dr/amr-travelobot/ros_ws/src/odrive_ros2_control/odrive_description -DCMAKE_INSTALL_PREFIX=/home/dr/amr-travelobot/ros_ws/src/odrive_ros2_control/install/odrive_description
+[1.241s] -- The C compiler identification is GNU 9.4.0
+[1.805s] -- The CXX compiler identification is GNU 9.4.0
+[1.828s] -- Check for working C compiler: /usr/bin/cc
+[2.111s] -- Check for working C compiler: /usr/bin/cc -- works
+[2.112s] -- Detecting C compiler ABI info
+[2.425s] -- Detecting C compiler ABI info - done
+[2.472s] -- Detecting C compile features
+[2.473s] -- Detecting C compile features - done
+[2.483s] -- Check for working CXX compiler: /usr/bin/c++
+[2.829s] -- Check for working CXX compiler: /usr/bin/c++ -- works
+[2.833s] -- Detecting CXX compiler ABI info
+[3.198s] -- Detecting CXX compiler ABI info - done
+[3.249s] -- Detecting CXX compile features
+[3.252s] -- Detecting CXX compile features - done
+[3.347s] CMake Error at CMakeLists.txt:4 (find_package):
+[3.348s]   By not providing "Findament_cmake_auto.cmake" in CMAKE_MODULE_PATH this
+[3.348s]   project has asked CMake to find a package configuration file provided by
+[3.349s]   "ament_cmake_auto", but CMake did not find one.
+[3.350s] 
+[3.351s]   Could not find a package configuration file provided by "ament_cmake_auto"
+[3.351s]   with any of the following names:
+[3.351s] 
+[3.352s]     ament_cmake_autoConfig.cmake
+[3.352s]     ament_cmake_auto-config.cmake
+[3.353s] 
+[3.354s]   Add the installation prefix of "ament_cmake_auto" to CMAKE_PREFIX_PATH or
+[3.354s]   set "ament_cmake_auto_DIR" to a directory containing one of the above
+[3.355s]   files.  If "ament_cmake_auto" provides a separate development package or
+[3.355s]   SDK, be sure it has been installed.
+[3.356s] 
+[3.356s] 
+[3.358s] -- Configuring incomplete, errors occurred!
+[3.358s] See also "/home/dr/amr-travelobot/ros_ws/src/odrive_ros2_control/build/odrive_description/CMakeFiles/CMakeOutput.log".
