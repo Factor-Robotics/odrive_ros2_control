@@ -13,16 +13,20 @@
 // limitations under the License.
 
 #include "odrive_hardware_interface/odrive_usb.hpp"
+// #include "rclcpp/rclcpp.hpp"
+
 
 namespace odrive
 {
 ODriveUSB::ODriveUSB()
 {
+  std::cout << "Connected to ODrive " << std::endl;
   libusb_context_ = NULL;
 }
 
 ODriveUSB::~ODriveUSB()
 {
+  
   for (auto it = odrive_map_.begin(); it != odrive_map_.end(); it++)
   {
     libusb_release_interface(it->second, 2);
@@ -36,12 +40,18 @@ ODriveUSB::~ODriveUSB()
     libusb_context_ = NULL;
   }
 }
+//  Initial Retrieve List USB serial number.  
+
+// Note: Can be error can't connect to devices, need to config proper with odrive 
 
 int ODriveUSB::init(const std::vector<std::vector<int64_t>>& serial_numbers)
 {
   int ret = libusb_init(&libusb_context_);
+  
   if (ret != LIBUSB_SUCCESS)
   {
+    //  RCLCPP_ERROR(rclcpp::get_logger()); 
+    // std::cout << "Connected to ODrive " << std::endl;
     return ret;
   }
 
