@@ -50,7 +50,7 @@ def generate_launch_description():
             default_value="joint1_velocity_controller",
         )
     )
-
+    
     enable_joint0 = LaunchConfiguration("enable_joint0")
     enable_joint1 = LaunchConfiguration("enable_joint1")
     joint0_controller = LaunchConfiguration("joint0_controller")
@@ -120,14 +120,17 @@ def generate_launch_description():
         executable="spawner.py",
         arguments=[joint1_controller, "-c", "/controller_manager"],
         condition=IfCondition(enable_joint1),
-    )
-
+    ) 
+    
+   
+    
     nodes = [
         control_node,
         robot_state_pub_node,
         joint_state_broadcaster_spawner,
         joint0_controller_spawner,
         joint1_controller_spawner,
+     
     ]
 
     return LaunchDescription(declared_arguments + nodes)

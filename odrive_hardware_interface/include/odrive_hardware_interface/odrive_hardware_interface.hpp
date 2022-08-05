@@ -25,17 +25,17 @@
 
 #define AXIS_STATE_IDLE 1
 #define AXIS_STATE_CLOSED_LOOP_CONTROL 8
-bool status = 1;
+
 #define CHECK(status)                                                                                                  \
-  // do                                                                                                                   \
-  // {                                                                                                                    \
-  //   ret = (status);                                                                                                \
-  //   if (ret != 0)                                                                                                      \
-  //   {                                                                                                                  \
-  //     RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"), libusb_error_name(ret));                             \
-  //     return return_type::ERROR;                                                                                       \
-  //   }                                                                                                                  \
-  // } while (0)
+  do                                                                                                                   \
+  {                                                                                                                    \
+    int ret = (status);                                                                                                \
+    if (ret != 0)                                                                                                      \
+    {                                                                                                                  \
+      RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"), libusb_error_name(ret));                             \
+      return return_type::ERROR;                                                                                       \
+    }                                                                                                                  \
+  } while (0)
 
 using namespace odrive;
 using hardware_interface::return_type;

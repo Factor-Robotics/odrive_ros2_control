@@ -51,7 +51,7 @@ int ODriveUSB::init(const std::vector<std::vector<int64_t>>& serial_numbers)
   if (ret != LIBUSB_SUCCESS)
   {
     //  RCLCPP_ERROR(rclcpp::get_logger()); 
-    // std::cout << "Connected to ODrive " << std::endl;
+    std::cout << "Connected to ODrive " << std::endl;
     return ret;
   }
 
