@@ -3,7 +3,7 @@
 ## 简介
 ODrive 的 ros2_control 驱动
 ## 前置依赖
-* ROS Foxy
+* ROS Humble
 * ODrive 固件 v0.5.3
 ## 文档
 - [Wiki](https://github.com/Factor-Robotics/odrive_ros2_control/wiki/%E6%96%87%E6%A1%A3)
