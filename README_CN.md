@@ -2,9 +2,11 @@
 [ENGLISH](<README.md>) / 中文
 ## 简介
 ODrive 的 ros2_control 驱动
-## 前置依赖
-* ROS Foxy
-* ODrive 固件 v0.5.1
+## 兼容性
+|  | ROS 2 Foxy Fitzroy | ROS 2 Humble Hawksbill |
+|---|---|---|
+| ODrive Firmware v0.5.3 | [foxy-fw-v0.5.3](../../tree/foxy-fw-v0.5.3) | [humble-fw-v0.5.3](../../tree/humble-fw-v0.5.3) |
+| ODrive Firmware v0.5.1 | [foxy-fw-v0.5.1](../../tree/foxy-fw-v0.5.1) | [humble-fw-v0.5.1](../../tree/humble-fw-v0.5.1) |
 ## 文档
 - [Wiki](https://github.com/Factor-Robotics/odrive_ros2_control/wiki/%E6%96%87%E6%A1%A3)
 ## Done
