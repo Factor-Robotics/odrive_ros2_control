@@ -88,11 +88,8 @@ def generate_launch_description():
     control_node = Node(
         package="controller_manager",
         executable="ros2_control_node",
+        output="both",
         parameters=[robot_description, robot_controllers],
-        output={
-            "stdout": "screen",
-            "stderr": "screen",
-        },
     )
 
     robot_state_pub_node = Node(
@@ -104,20 +101,20 @@ def generate_launch_description():
 
     joint_state_broadcaster_spawner = Node(
         package="controller_manager",
-        executable="spawner.py",
+        executable="spawner",
         arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
     )
 
     joint0_controller_spawner = Node(
         package="controller_manager",
-        executable="spawner.py",
+        executable="spawner",
         arguments=[joint0_controller, "-c", "/controller_manager"],
         condition=IfCondition(enable_joint0),
     )
 
     joint1_controller_spawner = Node(
         package="controller_manager",
-        executable="spawner.py",
+        executable="spawner",
         arguments=[joint1_controller, "-c", "/controller_manager"],
         condition=IfCondition(enable_joint1),
     )
