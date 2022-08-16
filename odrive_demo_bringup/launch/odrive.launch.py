@@ -62,7 +62,7 @@ def generate_launch_description():
             " ",
             PathJoinSubstitution(
                 [
-                    FindPackageShare("odrive_description"),
+                    FindPackageShare("odrive_demo_description"),
                     "urdf",
                     "odrive.urdf.xacro",
                 ]
@@ -79,7 +79,7 @@ def generate_launch_description():
 
     robot_controllers = PathJoinSubstitution(
         [
-            FindPackageShare("odrive_bringup"),
+            FindPackageShare("odrive_demo_bringup"),
             "config",
             "odrive_controllers.yaml",
         ]
