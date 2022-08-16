@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(odrive_description)
+project(odrive_demo_description)
 
 find_package(ament_cmake_auto REQUIRED)
 
