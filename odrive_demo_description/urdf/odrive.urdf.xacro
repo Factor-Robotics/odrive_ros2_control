@@ -4,7 +4,7 @@
   <xacro:arg name="enable_joint0" default="true" />
   <xacro:arg name="enable_joint1" default="true" />
 
-  <xacro:include filename="$(find odrive_description)/urdf/odrive.ros2_control.xacro" />
+  <xacro:include filename="$(find odrive_demo_description)/urdf/odrive.ros2_control.xacro" />
 
   <link name="world" />
 

@@ -9,8 +9,8 @@
 
   <buildtool_depend>ament_cmake_auto</buildtool_depend>
 
-  <exec_depend>odrive_bringup</exec_depend>
-  <exec_depend>odrive_description</exec_depend>
+  <exec_depend>odrive_demo_bringup</exec_depend>
+  <exec_depend>odrive_demo_description</exec_depend>
   <exec_depend>odrive_hardware_interface</exec_depend>
 
   <export>
