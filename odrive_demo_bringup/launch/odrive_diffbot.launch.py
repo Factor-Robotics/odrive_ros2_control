@@ -1,4 +1,4 @@
-# Copyright 2021 Factor Robotics
+# Copyright 2022 Factor Robotics
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,49 +13,12 @@
 # limitations under the License.
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
-from launch.conditions import IfCondition
-from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import Command, FindExecutable, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    declared_arguments = []
-
-    declared_arguments.append(
-        DeclareLaunchArgument(
-            "enable_joint0",
-            default_value="true",
-        )
-    )
-
-    declared_arguments.append(
-        DeclareLaunchArgument(
-            "enable_joint1",
-            default_value="false",
-        )
-    )
-
-    declared_arguments.append(
-        DeclareLaunchArgument(
-            "joint0_controller",
-            default_value="joint0_velocity_controller",
-        )
-    )
-
-    declared_arguments.append(
-        DeclareLaunchArgument(
-            "joint1_controller",
-            default_value="joint1_velocity_controller",
-        )
-    )
-
-    enable_joint0 = LaunchConfiguration("enable_joint0")
-    enable_joint1 = LaunchConfiguration("enable_joint1")
-    joint0_controller = LaunchConfiguration("joint0_controller")
-    joint1_controller = LaunchConfiguration("joint1_controller")
-
     robot_description_content = Command(
         [
             PathJoinSubstitution([FindExecutable(name="xacro")]),
@@ -64,15 +27,9 @@ def generate_launch_description():
                 [
                     FindPackageShare("odrive_demo_description"),
                     "urdf",
-                    "odrive.urdf.xacro",
+                    "odrive_diffbot.urdf.xacro"
                 ]
             ),
-            " ",
-            "enable_joint0:=",
-            enable_joint0,
-            " ",
-            "enable_joint1:=",
-            enable_joint1,
         ]
     )
     robot_description = {"robot_description": robot_description_content}
@@ -81,15 +38,23 @@ def generate_launch_description():
         [
             FindPackageShare("odrive_demo_bringup"),
             "config",
-            "odrive_controllers.yaml",
+            "diffbot_controllers.yaml",
+        ]
+    )
+
+    rviz_config_file = PathJoinSubstitution(
+        [
+            FindPackageShare("diffbot_description"),
+            "config",
+            "diffbot.rviz"
         ]
     )
 
     control_node = Node(
         package="controller_manager",
         executable="ros2_control_node",
-        output="both",
         parameters=[robot_description, robot_controllers],
+        output="both",
     )
 
     robot_state_pub_node = Node(
@@ -105,26 +70,23 @@ def generate_launch_description():
         arguments=["joint_state_broadcaster", "-c", "/controller_manager"],
     )
 
-    joint0_controller_spawner = Node(
+    robot_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=[joint0_controller, "-c", "/controller_manager"],
-        condition=IfCondition(enable_joint0),
+        arguments=["diffbot_base_controller", "-c", "/controller_manager"],
     )
 
-    joint1_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=[joint1_controller, "-c", "/controller_manager"],
-        condition=IfCondition(enable_joint1),
+    rviz_node = Node(
+        package="rviz2",
+        executable="rviz2",
+        name="rviz2",
+        arguments=["-d", rviz_config_file],
     )
 
-    nodes = [
+    return LaunchDescription([
         control_node,
         robot_state_pub_node,
         joint_state_broadcaster_spawner,
-        joint0_controller_spawner,
-        joint1_controller_spawner,
-    ]
-
-    return LaunchDescription(declared_arguments + nodes)
+        robot_controller_spawner,
+        rviz_node
+    ])
