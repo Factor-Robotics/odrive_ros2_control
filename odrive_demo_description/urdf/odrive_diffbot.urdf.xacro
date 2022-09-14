@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="diffdrive_robot">
+
+  <xacro:arg name="prefix" default="" />
+
+  <xacro:include filename="$(find diffbot_description)/urdf/diffbot.urdf.xacro" />
+
+  <xacro:include filename="$(find diffbot_description)/gazebo/diffbot.materials.xacro" />
+
+  <xacro:include filename="$(find odrive_demo_description)/urdf/odrive.ros2_control.xacro" />
+
+  <xacro:diffbot prefix="$(arg prefix)" />
+
+  <xacro:odrive_ros2_control
+    name="ODriveDiffBot"
+    joint0_name="$(arg prefix)left_wheel_joint"
+    joint1_name="$(arg prefix)right_wheel_joint" />
+
+</robot>
