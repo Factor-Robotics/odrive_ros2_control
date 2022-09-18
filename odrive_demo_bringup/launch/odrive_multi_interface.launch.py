@@ -81,7 +81,7 @@ def generate_launch_description():
         [
             FindPackageShare("odrive_demo_bringup"),
             "config",
-            "odrive_controllers.yaml",
+            "odrive_multi_interface_forward_controllers.yaml",
         ]
     )
 
