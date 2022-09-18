@@ -61,6 +61,9 @@ public:
                                           const std::vector<std::string>& stop_interfaces) override;
 
   ODRIVE_HARDWARE_INTERFACE_PUBLIC
+  return_type perform_command_mode_switch(const std::vector<std::string>&, const std::vector<std::string>&) override;
+
+  ODRIVE_HARDWARE_INTERFACE_PUBLIC
   return_type start() override;
 
   ODRIVE_HARDWARE_INTERFACE_PUBLIC
