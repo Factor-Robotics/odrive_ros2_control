@@ -81,7 +81,7 @@ def generate_launch_description():
         [
             FindPackageShare("odrive_demo_bringup"),
             "config",
-            "odrive_controllers.yaml",
+            "odrive_multi_interface_forward_controllers.yaml",
         ]
     )
 
@@ -102,7 +102,7 @@ def generate_launch_description():
     joint_state_broadcaster_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
+        arguments=["joint_state_broadcaster", "-c", "/controller_manager"],
     )
 
     joint0_controller_spawner = Node(
