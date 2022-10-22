@@ -91,7 +91,6 @@ private:
 
   std::vector<std::vector<int64_t>> serial_numbers_;
   std::vector<int> axes_;
-  std::vector<int> directions_;
   std::vector<float> torque_constants_;
   std::vector<bool> enable_watchdogs_;
 
