@@ -16,35 +16,31 @@
 
 #include <cmath>
 
-#include "rclcpp/rclcpp.hpp"
 #include "hardware_interface/system_interface.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "odrive_hardware_interface/odrive_usb.hpp"
 #include "odrive_hardware_interface/visibility_control.hpp"
+#include "rclcpp/rclcpp.hpp"
 
 #define AXIS_STATE_IDLE 1
 #define AXIS_STATE_CLOSED_LOOP_CONTROL 8
 
-#define CHECK_TS(status)                                                                                               \
-  do                                                                                                                   \
-  {                                                                                                                    \
-    int ret = (status);                                                                                                \
-    if (ret != 0)                                                                                                      \
-    {                                                                                                                  \
-      RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"), libusb_error_name(ret));                             \
-      return CallbackReturn::ERROR;                                                                                    \
-    }                                                                                                                  \
+#define CHECK_TS(status)                                                                   \
+  do {                                                                                     \
+    int ret = (status);                                                                    \
+    if (ret != 0) {                                                                        \
+      RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"), libusb_error_name(ret)); \
+      return CallbackReturn::ERROR;                                                        \
+    }                                                                                      \
   } while (0)
 
-#define CHECK_RW(status)                                                                                               \
-  do                                                                                                                   \
-  {                                                                                                                    \
-    int ret = (status);                                                                                                \
-    if (ret != 0)                                                                                                      \
-    {                                                                                                                  \
-      RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"), libusb_error_name(ret));                             \
-      return return_type::ERROR;                                                                                       \
-    }                                                                                                                  \
+#define CHECK_RW(status)                                                                   \
+  do {                                                                                     \
+    int ret = (status);                                                                    \
+    if (ret != 0) {                                                                        \
+      RCLCPP_ERROR(rclcpp::get_logger("ODriveHardwareInterface"), libusb_error_name(ret)); \
+      return return_type::ERROR;                                                           \
+    }                                                                                      \
   } while (0)
 
 using namespace odrive;
@@ -59,13 +55,13 @@ public:
   RCLCPP_SHARED_PTR_DEFINITIONS(ODriveHardwareInterface)
 
   ODRIVE_HARDWARE_INTERFACE_PUBLIC
-  CallbackReturn on_init(const hardware_interface::HardwareInfo& info) override;
+  CallbackReturn on_init(const hardware_interface::HardwareInfo & info) override;
 
   ODRIVE_HARDWARE_INTERFACE_PUBLIC
-  CallbackReturn on_activate(const rclcpp_lifecycle::State&) override;
+  CallbackReturn on_activate(const rclcpp_lifecycle::State &) override;
 
   ODRIVE_HARDWARE_INTERFACE_PUBLIC
-  CallbackReturn on_deactivate(const rclcpp_lifecycle::State&) override;
+  CallbackReturn on_deactivate(const rclcpp_lifecycle::State &) override;
 
   ODRIVE_HARDWARE_INTERFACE_PUBLIC
   std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
@@ -74,20 +70,22 @@ public:
   std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
 
   ODRIVE_HARDWARE_INTERFACE_PUBLIC
-  return_type prepare_command_mode_switch(const std::vector<std::string>& start_interfaces,
-                                          const std::vector<std::string>& stop_interfaces) override;
+  return_type prepare_command_mode_switch(
+    const std::vector<std::string> & start_interfaces,
+    const std::vector<std::string> & stop_interfaces) override;
 
   ODRIVE_HARDWARE_INTERFACE_PUBLIC
-  return_type perform_command_mode_switch(const std::vector<std::string>&, const std::vector<std::string>&) override;
+  return_type perform_command_mode_switch(
+    const std::vector<std::string> &, const std::vector<std::string> &) override;
 
   ODRIVE_HARDWARE_INTERFACE_PUBLIC
-  return_type read(const rclcpp::Time&, const rclcpp::Duration&) override;
+  return_type read(const rclcpp::Time &, const rclcpp::Duration &) override;
 
   ODRIVE_HARDWARE_INTERFACE_PUBLIC
-  return_type write(const rclcpp::Time&, const rclcpp::Duration&) override;
+  return_type write(const rclcpp::Time &, const rclcpp::Duration &) override;
 
 private:
-  ODriveUSB* odrive;
+  ODriveUSB * odrive;
 
   std::vector<std::vector<int64_t>> serial_numbers_;
   std::vector<int> axes_;

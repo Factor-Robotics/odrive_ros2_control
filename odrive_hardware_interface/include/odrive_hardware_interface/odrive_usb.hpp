@@ -14,11 +14,12 @@
 
 #pragma once
 
-#include <iostream>
+#include <libusb-1.0/libusb.h>
+
 #include <cstring>
+#include <iostream>
 #include <map>
 #include <vector>
-#include <libusb-1.0/libusb.h>
 
 #include "odrive_hardware_interface/odrive_endpoints.hpp"
 
@@ -41,31 +42,33 @@ public:
   ODriveUSB();
   ~ODriveUSB();
 
-  int init(const std::vector<std::vector<int64_t>>& serial_numbers);
+  int init(const std::vector<std::vector<int64_t>> & serial_numbers);
 
   template <typename T>
-  int read(int64_t& serial_number, short endpoint_id, T& value);
+  int read(int64_t & serial_number, short endpoint_id, T & value);
   template <typename T>
-  int write(int64_t& serial_number, short endpoint_id, const T& value);
-  int call(int64_t& serial_number, short endpoint_id);
+  int write(int64_t & serial_number, short endpoint_id, const T & value);
+  int call(int64_t & serial_number, short endpoint_id);
 
 private:
-  libusb_context* libusb_context_;
+  libusb_context * libusb_context_;
 
-  std::map<int64_t, libusb_device_handle*> odrive_map_;
+  std::map<int64_t, libusb_device_handle *> odrive_map_;
 
   short sequence_number_;
 
   template <typename T>
-  int read(libusb_device_handle* odrive_handle, short endpoint_id, T& value);
+  int read(libusb_device_handle * odrive_handle, short endpoint_id, T & value);
   template <typename T>
-  int write(libusb_device_handle* odrive_handle, short endpoint_id, const T& value);
-  int call(libusb_device_handle* odrive_handle, short endpoint_id);
+  int write(libusb_device_handle * odrive_handle, short endpoint_id, const T & value);
+  int call(libusb_device_handle * odrive_handle, short endpoint_id);
 
-  int endpointOperation(libusb_device_handle* odrive_handle, short endpoint_id, short response_size,
-                        bytes request_payload, bytes& response_payload, bool MSB);
+  int endpointOperation(
+    libusb_device_handle * odrive_handle, short endpoint_id, short response_size,
+    bytes request_payload, bytes & response_payload, bool MSB);
 
-  bytes encodePacket(short sequence_number, short endpoint_id, short response_size, const bytes& request_payload);
-  bytes decodePacket(bytes& response_packet);
+  bytes encodePacket(
+    short sequence_number, short endpoint_id, short response_size, const bytes & request_payload);
+  bytes decodePacket(bytes & response_packet);
 };
 }  // namespace odrive
