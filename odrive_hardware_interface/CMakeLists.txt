@@ -18,6 +18,8 @@ endif()
 # find dependencies
 find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
+
+include(FindPkgConfig)
 pkg_search_module(LIBUSB1 REQUIRED libusb-1.0)
 
 if(LIBUSB1_FOUND)
