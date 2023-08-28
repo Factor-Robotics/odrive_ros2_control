@@ -344,7 +344,11 @@ return_type ODriveHardwareInterface::write()
           input_pos));
 
       case integration_level_t::VELOCITY:
-        input_vel = hw_commands_velocities_[i] / 2 / M_PI;
+        if (i == 0) {  // Only for joint1
+          input_vel = hw_commands_velocities_[i] / 2 / M_PI;  // Negative velocity for joint1
+        } else {
+          input_vel = -hw_commands_velocities_[i] / 2 / M_PI;   // Keep the same velocity for other joints
+        }
         CHECK(odrive->write(
           serial_numbers_[1][i], AXIS__CONTROLLER__INPUT_VEL + per_axis_offset * axes_[i],
           input_vel));

@@ -18,7 +18,7 @@
           <param name="serial_number">${serial_number}</param>
           <param name="axis">0</param>
           <param name="enable_watchdog">1</param>
-          <param name="watchdog_timeout">0.1</param>
+          <param name="watchdog_timeout">0.5</param>
         </joint>
       </xacro:if>
 
@@ -27,7 +27,7 @@
           <param name="serial_number">${serial_number}</param>
           <param name="axis">1</param>
           <param name="enable_watchdog">1</param>
-          <param name="watchdog_timeout">0.1</param>
+          <param name="watchdog_timeout">0.5</param>
         </joint>
       </xacro:if>
     </ros2_control>

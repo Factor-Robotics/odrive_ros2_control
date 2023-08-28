@@ -13,7 +13,7 @@
     <joint name="joint0" type="continuous">
       <parent link="world"/>
       <child link="link0"/>
-      <axis xyz="0 0 1"/>
+      <axis xyz="1.0 0.0 0.0"/>
     </joint>
   </xacro:if>
 
@@ -22,7 +22,7 @@
     <joint name="joint1" type="continuous">
       <parent link="world"/>
       <child link="link1"/>
-      <axis xyz="0 0 1"/>
+      <axis xyz="1.0 0.0 0.0"/>
     </joint>
   </xacro:if>
 
